@@ -1,0 +1,16 @@
+{
+  "name": "@artiffine/hardhat-types",
+  "version": "1.0.0",
+  "description": "",
+  "private": true,
+  "main": "src/index.ts",
+  "scripts": {
+    "type-check": "echo 'not implemented'",
+    "lint:ts": "echo 'not implemented'"
+  },
+  "devDependencies": {
+    "@ethersproject/providers": "^5.7.2",
+    "ethers": "^5.7.2",
+    "typescript": "^5.0.4"
+  }
+}

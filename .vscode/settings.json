@@ -1,0 +1,5 @@
+{
+  "editor.formatOnSave": true,
+  "solidity.defaultCompiler": "localNodeModule",
+  "solidity.compileUsingRemoteVersion": "v0.8.10+commit.fc410830"
+}

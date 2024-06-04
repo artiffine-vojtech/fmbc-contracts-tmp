@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "baseUrl": "\u0000",
+    "paths": {
+      "@artiffine/lib": ["../../@lib/src"],
+      "@artiffine/core": ["../../@core/src"],
+      "@artiffine/erc721core": ["../../@erc721core/src"],
+      "@artiffine/erc20membersale": ["../../@erc20membersale/src"],
+      "@artiffine/erc20publicsale": ["../../@erc20publicsale/src"],
+      "@artiffine/erc20publicsalecustomtoken": [
+        "../../@erc20publicsalecustomtoken/src"
+      ],
+      "@artiffine/erc20staking": ["../../@erc20staking/src"],
+      "@artiffine/singlestaking": ["../../@erc20singlestaking/src"],
+      "@artiffine/erc20vesting": ["../../@erc20vesting/src"],
+      "@artiffine/erc721pfp": ["../../@erc721pfp/src"],
+      "@artiffine/voting": ["../../@voting/src"],
+      "@artiffine/hardhat-types": ["../../hardhat-types/src"],
+      "@artiffine/hardhat-types/*": ["../../hardhat-types/src/*"]
+    }
+  }
+}
