@@ -2,8 +2,8 @@
 
 pragma solidity 0.8.23;
 
-/// @title IIncentivesController
-/// @notice Interface for staking contract with multiple token rewards.
+/// @title ITokenControllerCommons
+/// @notice Interface for staking contracts.
 interface ITokenControllerCommons {
     struct Reward {
         // Timestamp of the end of current rewards distribution.

@@ -9,40 +9,9 @@ import '../../utils/Adminable.sol';
 import '../interfaces/IControllerFactory.sol';
 import '../interfaces/IDexProvider.sol';
 import '../interfaces/ITokenEmissionsController.sol';
+import '../interfaces/ITokenIncentivesController.sol';
 import '../ERC20MEME.sol';
 import '../../utils/Adminable.sol';
-
-interface ITokenIncentivesController {
-    struct EmissionPoint {
-        uint256 duration;
-        uint256 amount;
-    }
-
-    /**
-     * Deposit staking tokens.
-     * @param _amount Amount of staking token to deposit.
-     * @param _onBehalfOf Receiver of the staked tokens.
-     */
-    function deposit(uint _amount, address _onBehalfOf) external;
-
-    /**
-     * Withdraw staking tokens while claiming rewards.
-     * @param _amount Amount of staking token to withdraw.
-     */
-    function withdraw(uint _amount, address _onBehalfOf) external;
-
-    function notifyReward(address[] memory _rewardTokens, uint[] memory _amounts, uint _rewardsDuration) external;
-
-    function notifyReward(address[] memory _rewardTokens, uint[] memory _amounts) external;
-
-    /**
-     * Register token as a reward.
-     * @param _rewardToken Address of the reward token.
-     */
-    function addReward(address _rewardToken) external;
-
-    function startEmissions(EmissionPoint[] memory _emissions) external;
-}
 
 interface IVesting {
     function vestTokens(uint256 _amount, address _beneficiary) external;
@@ -148,8 +117,8 @@ library LaunchControl {
         rewardArray[0] = (rewardsAmount * _launchConfig.rewardsAllocations[4]) / DEN;
         if (rewardArray[0] > 0) {
             IERC20(address(meme)).safeApprove(_vars.fomoIC, rewardArray[0]);
-            ITokenIncentivesController(_vars.fomoIC).addReward(address(meme));
-            ITokenIncentivesController(_vars.fomoIC).notifyReward(tokenArray, rewardArray, 120 days);
+            ITokenControllerCommons(_vars.fomoIC).addReward(address(meme));
+            ITokenControllerCommons(_vars.fomoIC).notifyReward(tokenArray, rewardArray, 120 days);
         }
 
         // vest % MEME to the token team

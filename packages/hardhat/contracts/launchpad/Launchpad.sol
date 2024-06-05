@@ -47,7 +47,7 @@ contract Launchpad is ILaunchpad, Ownable {
     /// @notice Steak LP incentives controller
     ITokenIncentivesController public steakIC;
     /// @notice FOMO incentives controller
-    ITokenIncentivesController public fomoIC;
+    ITokenControllerCommons public fomoIC;
 
     /// @notice FOMO Bull Club Member NFT collection
     INFTWithLevel public immutable memberNFT;
@@ -85,7 +85,7 @@ contract Launchpad is ILaunchpad, Ownable {
     ) {
         fomoUsdcLp = IERC20(_fomoUsdcLp);
         steakIC = ITokenIncentivesController(_steakIC);
-        fomoIC = ITokenIncentivesController(_fomoIC);
+        fomoIC = ITokenControllerCommons(_fomoIC);
         memberNFT = INFTWithLevel(_memberNFT);
         nftChecker = INFTChecker(_nftChecker);
         identityVerifier = IIdentityVerifier(_identityVerifier);
@@ -401,7 +401,7 @@ contract Launchpad is ILaunchpad, Ownable {
      * @inheritdoc ILaunchpad
      */
     function setFomoIC(address _fomoIC) external onlyOwner {
-        fomoIC = ITokenIncentivesController(_fomoIC);
+        fomoIC = ITokenControllerCommons(_fomoIC);
     }
 
     /**
