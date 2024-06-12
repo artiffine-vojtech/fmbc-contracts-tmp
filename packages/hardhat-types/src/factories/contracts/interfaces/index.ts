@@ -14,5 +14,4 @@ export { INFTWithLevel__factory } from "./INFTWithLevel__factory";
 export { IPublicSale__factory } from "./IPublicSale__factory";
 export { IPublicSaleWithCutomToken__factory } from "./IPublicSaleWithCutomToken__factory";
 export { ITeamVesting__factory } from "./ITeamVesting__factory";
-export { ITokenWithLevel__factory } from "./ITokenWithLevel__factory";
 export { IVesting__factory } from "./IVesting__factory";

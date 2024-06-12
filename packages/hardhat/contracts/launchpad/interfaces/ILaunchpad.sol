@@ -94,12 +94,19 @@ interface ILaunchpad is ILaunchCommon {
 
     /**
      * @notice Set the minimum and maximum pledge limits
-     * @notice KOLs have 5x higher max limit, and 10x higher min limit
      * @dev onlyOwner
      * @param _min The minimum pledge limit in DOLLAR VALUE (1000 = 1000 USDC)
      * @param _max The maximum pledge limit in DOLLAR VALUE (1000 = 1000 USDC)
      */
     function setPledgeLimits(uint256 _min, uint256 _max) external;
+
+    /**
+     * @notice Set the minimum and maximum pledge limits for KOLs
+     * @dev onlyOwner
+     * @param _min The minimum pledge limit in DOLLAR VALUE (1000 = 1000 USDC)
+     * @param _max The maximum pledge limit in DOLLAR VALUE (1000 = 1000 USDC)
+     */
+    function setPledgeLimitsForKOLs(uint256 _min, uint256 _max) external;
 
     /**
      * @notice Set the platform fee for Steak LP

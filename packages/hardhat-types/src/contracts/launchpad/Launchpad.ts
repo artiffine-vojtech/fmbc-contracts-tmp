@@ -127,6 +127,8 @@ export interface LaunchpadInterface extends utils.Interface {
     "PLATFORM_MEME_FEE()": FunctionFragment;
     "PLATFORM_STEAK_FEE()": FunctionFragment;
     "USDC()": FunctionFragment;
+    "USDC_KOL_MAX()": FunctionFragment;
+    "USDC_KOL_MIN()": FunctionFragment;
     "USDC_MAX()": FunctionFragment;
     "USDC_MIN()": FunctionFragment;
     "USDC_SOFT_CAP()": FunctionFragment;
@@ -156,6 +158,7 @@ export interface LaunchpadInterface extends utils.Interface {
     "setKolAddresses(address[],bool[])": FunctionFragment;
     "setMemePlatformFee(uint256)": FunctionFragment;
     "setPledgeLimits(uint256,uint256)": FunctionFragment;
+    "setPledgeLimitsForKOLs(uint256,uint256)": FunctionFragment;
     "setSoftCapAndFees(uint256,uint256)": FunctionFragment;
     "setSteakIC(address)": FunctionFragment;
     "setSteakPlatformFee(uint256)": FunctionFragment;
@@ -172,6 +175,8 @@ export interface LaunchpadInterface extends utils.Interface {
       | "PLATFORM_MEME_FEE"
       | "PLATFORM_STEAK_FEE"
       | "USDC"
+      | "USDC_KOL_MAX"
+      | "USDC_KOL_MIN"
       | "USDC_MAX"
       | "USDC_MIN"
       | "USDC_SOFT_CAP"
@@ -201,6 +206,7 @@ export interface LaunchpadInterface extends utils.Interface {
       | "setKolAddresses"
       | "setMemePlatformFee"
       | "setPledgeLimits"
+      | "setPledgeLimitsForKOLs"
       | "setSoftCapAndFees"
       | "setSteakIC"
       | "setSteakPlatformFee"
@@ -227,6 +233,14 @@ export interface LaunchpadInterface extends utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "USDC", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "USDC_KOL_MAX",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "USDC_KOL_MIN",
+    values?: undefined
+  ): string;
   encodeFunctionData(functionFragment: "USDC_MAX", values?: undefined): string;
   encodeFunctionData(functionFragment: "USDC_MIN", values?: undefined): string;
   encodeFunctionData(
@@ -345,6 +359,10 @@ export interface LaunchpadInterface extends utils.Interface {
     values: [PromiseOrValue<BigNumberish>, PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
+    functionFragment: "setPledgeLimitsForKOLs",
+    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(
     functionFragment: "setSoftCapAndFees",
     values: [PromiseOrValue<BigNumberish>, PromiseOrValue<BigNumberish>]
   ): string;
@@ -381,6 +399,14 @@ export interface LaunchpadInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "USDC", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "USDC_KOL_MAX",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "USDC_KOL_MIN",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "USDC_MAX", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "USDC_MIN", data: BytesLike): Result;
   decodeFunctionResult(
@@ -459,6 +485,10 @@ export interface LaunchpadInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "setPledgeLimits",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "setPledgeLimitsForKOLs",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -594,6 +624,10 @@ export interface Launchpad extends BaseContract {
     PLATFORM_STEAK_FEE(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     USDC(overrides?: CallOverrides): Promise<[string]>;
+
+    USDC_KOL_MAX(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    USDC_KOL_MIN(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     USDC_MAX(overrides?: CallOverrides): Promise<[BigNumber]>;
 
@@ -748,6 +782,12 @@ export interface Launchpad extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
+    setPledgeLimitsForKOLs(
+      _min: PromiseOrValue<BigNumberish>,
+      _max: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
     setSoftCapAndFees(
       _softCap: PromiseOrValue<BigNumberish>,
       _launchFee: PromiseOrValue<BigNumberish>,
@@ -812,6 +852,10 @@ export interface Launchpad extends BaseContract {
   PLATFORM_STEAK_FEE(overrides?: CallOverrides): Promise<BigNumber>;
 
   USDC(overrides?: CallOverrides): Promise<string>;
+
+  USDC_KOL_MAX(overrides?: CallOverrides): Promise<BigNumber>;
+
+  USDC_KOL_MIN(overrides?: CallOverrides): Promise<BigNumber>;
 
   USDC_MAX(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -966,6 +1010,12 @@ export interface Launchpad extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
+  setPledgeLimitsForKOLs(
+    _min: PromiseOrValue<BigNumberish>,
+    _max: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
   setSoftCapAndFees(
     _softCap: PromiseOrValue<BigNumberish>,
     _launchFee: PromiseOrValue<BigNumberish>,
@@ -1030,6 +1080,10 @@ export interface Launchpad extends BaseContract {
     PLATFORM_STEAK_FEE(overrides?: CallOverrides): Promise<BigNumber>;
 
     USDC(overrides?: CallOverrides): Promise<string>;
+
+    USDC_KOL_MAX(overrides?: CallOverrides): Promise<BigNumber>;
+
+    USDC_KOL_MIN(overrides?: CallOverrides): Promise<BigNumber>;
 
     USDC_MAX(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1182,6 +1236,12 @@ export interface Launchpad extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
+    setPledgeLimitsForKOLs(
+      _min: PromiseOrValue<BigNumberish>,
+      _max: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     setSoftCapAndFees(
       _softCap: PromiseOrValue<BigNumberish>,
       _launchFee: PromiseOrValue<BigNumberish>,
@@ -1304,6 +1364,10 @@ export interface Launchpad extends BaseContract {
     PLATFORM_STEAK_FEE(overrides?: CallOverrides): Promise<BigNumber>;
 
     USDC(overrides?: CallOverrides): Promise<BigNumber>;
+
+    USDC_KOL_MAX(overrides?: CallOverrides): Promise<BigNumber>;
+
+    USDC_KOL_MIN(overrides?: CallOverrides): Promise<BigNumber>;
 
     USDC_MAX(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1437,6 +1501,12 @@ export interface Launchpad extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
+    setPledgeLimitsForKOLs(
+      _min: PromiseOrValue<BigNumberish>,
+      _max: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
     setSoftCapAndFees(
       _softCap: PromiseOrValue<BigNumberish>,
       _launchFee: PromiseOrValue<BigNumberish>,
@@ -1482,6 +1552,10 @@ export interface Launchpad extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     USDC(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    USDC_KOL_MAX(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    USDC_KOL_MIN(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     USDC_MAX(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
@@ -1610,6 +1684,12 @@ export interface Launchpad extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     setPledgeLimits(
+      _min: PromiseOrValue<BigNumberish>,
+      _max: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setPledgeLimitsForKOLs(
       _min: PromiseOrValue<BigNumberish>,
       _max: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }

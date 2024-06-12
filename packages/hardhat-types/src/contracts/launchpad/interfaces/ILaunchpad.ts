@@ -93,6 +93,7 @@ export interface ILaunchpadInterface extends utils.Interface {
     "setKolAddresses(address[],bool[])": FunctionFragment;
     "setMemePlatformFee(uint256)": FunctionFragment;
     "setPledgeLimits(uint256,uint256)": FunctionFragment;
+    "setPledgeLimitsForKOLs(uint256,uint256)": FunctionFragment;
     "setSoftCapAndFees(uint256,uint256)": FunctionFragment;
     "setSteakIC(address)": FunctionFragment;
     "setSteakPlatformFee(uint256)": FunctionFragment;
@@ -112,6 +113,7 @@ export interface ILaunchpadInterface extends utils.Interface {
       | "setKolAddresses"
       | "setMemePlatformFee"
       | "setPledgeLimits"
+      | "setPledgeLimitsForKOLs"
       | "setSoftCapAndFees"
       | "setSteakIC"
       | "setSteakPlatformFee"
@@ -182,6 +184,10 @@ export interface ILaunchpadInterface extends utils.Interface {
     values: [PromiseOrValue<BigNumberish>, PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
+    functionFragment: "setPledgeLimitsForKOLs",
+    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(
     functionFragment: "setSoftCapAndFees",
     values: [PromiseOrValue<BigNumberish>, PromiseOrValue<BigNumberish>]
   ): string;
@@ -231,6 +237,10 @@ export interface ILaunchpadInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "setPledgeLimits",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "setPledgeLimitsForKOLs",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -405,6 +415,12 @@ export interface ILaunchpad extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
+    setPledgeLimitsForKOLs(
+      _min: PromiseOrValue<BigNumberish>,
+      _max: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
     setSoftCapAndFees(
       _softCap: PromiseOrValue<BigNumberish>,
       _launchFee: PromiseOrValue<BigNumberish>,
@@ -495,6 +511,12 @@ export interface ILaunchpad extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
+  setPledgeLimitsForKOLs(
+    _min: PromiseOrValue<BigNumberish>,
+    _max: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
   setSoftCapAndFees(
     _softCap: PromiseOrValue<BigNumberish>,
     _launchFee: PromiseOrValue<BigNumberish>,
@@ -580,6 +602,12 @@ export interface ILaunchpad extends BaseContract {
     ): Promise<void>;
 
     setPledgeLimits(
+      _min: PromiseOrValue<BigNumberish>,
+      _max: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    setPledgeLimitsForKOLs(
       _min: PromiseOrValue<BigNumberish>,
       _max: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
@@ -724,6 +752,12 @@ export interface ILaunchpad extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
+    setPledgeLimitsForKOLs(
+      _min: PromiseOrValue<BigNumberish>,
+      _max: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
     setSoftCapAndFees(
       _softCap: PromiseOrValue<BigNumberish>,
       _launchFee: PromiseOrValue<BigNumberish>,
@@ -810,6 +844,12 @@ export interface ILaunchpad extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     setPledgeLimits(
+      _min: PromiseOrValue<BigNumberish>,
+      _max: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setPledgeLimitsForKOLs(
       _min: PromiseOrValue<BigNumberish>,
       _max: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }

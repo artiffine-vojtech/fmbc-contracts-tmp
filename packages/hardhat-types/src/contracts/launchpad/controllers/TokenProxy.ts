@@ -35,11 +35,11 @@ export interface TokenProxyInterface extends utils.Interface {
     "controller()": FunctionFragment;
     "decimals()": FunctionFragment;
     "decreaseAllowance(address,uint256)": FunctionFragment;
-    "deposit(uint256,address)": FunctionFragment;
-    "fomo()": FunctionFragment;
+    "deposit(uint256,uint8)": FunctionFragment;
     "increaseAllowance(address,uint256)": FunctionFragment;
     "name()": FunctionFragment;
     "owner()": FunctionFragment;
+    "proxiedToken()": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
     "setController(address)": FunctionFragment;
     "symbol()": FunctionFragment;
@@ -59,10 +59,10 @@ export interface TokenProxyInterface extends utils.Interface {
       | "decimals"
       | "decreaseAllowance"
       | "deposit"
-      | "fomo"
       | "increaseAllowance"
       | "name"
       | "owner"
+      | "proxiedToken"
       | "renounceOwnership"
       | "setController"
       | "symbol"
@@ -96,15 +96,18 @@ export interface TokenProxyInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "deposit",
-    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<string>]
+    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<BigNumberish>]
   ): string;
-  encodeFunctionData(functionFragment: "fomo", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "increaseAllowance",
     values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(functionFragment: "name", values?: undefined): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "proxiedToken",
+    values?: undefined
+  ): string;
   encodeFunctionData(
     functionFragment: "renounceOwnership",
     values?: undefined
@@ -149,13 +152,16 @@ export interface TokenProxyInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "deposit", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "fomo", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "increaseAllowance",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "name", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "proxiedToken",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "renounceOwnership",
     data: BytesLike
@@ -283,11 +289,9 @@ export interface TokenProxy extends BaseContract {
 
     deposit(
       _amount: PromiseOrValue<BigNumberish>,
-      _onBehalfOf: PromiseOrValue<string>,
+      _lock: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
-
-    fomo(overrides?: CallOverrides): Promise<[string]>;
 
     increaseAllowance(
       spender: PromiseOrValue<string>,
@@ -298,6 +302,8 @@ export interface TokenProxy extends BaseContract {
     name(overrides?: CallOverrides): Promise<[string]>;
 
     owner(overrides?: CallOverrides): Promise<[string]>;
+
+    proxiedToken(overrides?: CallOverrides): Promise<[string]>;
 
     renounceOwnership(
       overrides?: Overrides & { from?: PromiseOrValue<string> }
@@ -365,11 +371,9 @@ export interface TokenProxy extends BaseContract {
 
   deposit(
     _amount: PromiseOrValue<BigNumberish>,
-    _onBehalfOf: PromiseOrValue<string>,
+    _lock: PromiseOrValue<BigNumberish>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
-
-  fomo(overrides?: CallOverrides): Promise<string>;
 
   increaseAllowance(
     spender: PromiseOrValue<string>,
@@ -380,6 +384,8 @@ export interface TokenProxy extends BaseContract {
   name(overrides?: CallOverrides): Promise<string>;
 
   owner(overrides?: CallOverrides): Promise<string>;
+
+  proxiedToken(overrides?: CallOverrides): Promise<string>;
 
   renounceOwnership(
     overrides?: Overrides & { from?: PromiseOrValue<string> }
@@ -447,11 +453,9 @@ export interface TokenProxy extends BaseContract {
 
     deposit(
       _amount: PromiseOrValue<BigNumberish>,
-      _onBehalfOf: PromiseOrValue<string>,
+      _lock: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<void>;
-
-    fomo(overrides?: CallOverrides): Promise<string>;
 
     increaseAllowance(
       spender: PromiseOrValue<string>,
@@ -462,6 +466,8 @@ export interface TokenProxy extends BaseContract {
     name(overrides?: CallOverrides): Promise<string>;
 
     owner(overrides?: CallOverrides): Promise<string>;
+
+    proxiedToken(overrides?: CallOverrides): Promise<string>;
 
     renounceOwnership(overrides?: CallOverrides): Promise<void>;
 
@@ -561,11 +567,9 @@ export interface TokenProxy extends BaseContract {
 
     deposit(
       _amount: PromiseOrValue<BigNumberish>,
-      _onBehalfOf: PromiseOrValue<string>,
+      _lock: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
-
-    fomo(overrides?: CallOverrides): Promise<BigNumber>;
 
     increaseAllowance(
       spender: PromiseOrValue<string>,
@@ -576,6 +580,8 @@ export interface TokenProxy extends BaseContract {
     name(overrides?: CallOverrides): Promise<BigNumber>;
 
     owner(overrides?: CallOverrides): Promise<BigNumber>;
+
+    proxiedToken(overrides?: CallOverrides): Promise<BigNumber>;
 
     renounceOwnership(
       overrides?: Overrides & { from?: PromiseOrValue<string> }
@@ -644,11 +650,9 @@ export interface TokenProxy extends BaseContract {
 
     deposit(
       _amount: PromiseOrValue<BigNumberish>,
-      _onBehalfOf: PromiseOrValue<string>,
+      _lock: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
-
-    fomo(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     increaseAllowance(
       spender: PromiseOrValue<string>,
@@ -659,6 +663,8 @@ export interface TokenProxy extends BaseContract {
     name(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    proxiedToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     renounceOwnership(
       overrides?: Overrides & { from?: PromiseOrValue<string> }

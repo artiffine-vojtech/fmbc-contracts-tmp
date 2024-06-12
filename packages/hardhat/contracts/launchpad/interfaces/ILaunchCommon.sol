@@ -112,8 +112,10 @@ interface ILaunchCommon {
          * [10] - raisedLPKOL
          * [11] - SteakTeamFee
          * [12] - SteakPlatformFee
+         * [13] - minPledgeKOL
+         * [14] - maxPledgeKOL
          */
-        uint256[13] values;
+        uint256[15] values;
         // Launch status
         LaunchStatus status;
     }

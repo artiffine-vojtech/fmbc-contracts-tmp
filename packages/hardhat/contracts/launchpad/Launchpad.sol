@@ -32,6 +32,10 @@ contract Launchpad is ILaunchpad, Ownable {
     uint256 public USDC_MIN = 50 * 1e6;
     /// @notice Maximum pledge value in USDC
     uint256 public USDC_MAX = 1_000 * 1e6;
+    /// @notice Minimum pledge value in USDC for KOLs
+    uint256 public USDC_KOL_MIN = 500 * 1e6;
+    /// @notice Maximum pledge value in USDC for KOLs
+    uint256 public USDC_KOL_MAX = 5_000 * 1e6;
     /// @notice Fee taken by the contract owner in Steak LP tokens
     uint256 public PLATFORM_STEAK_FEE = 500;
     /// @notice Fee taken by the contract owner in MEME tokens
@@ -190,7 +194,9 @@ contract Launchpad is ILaunchpad, Ownable {
                     lpAmount,
                     0,
                     _config.steakTeamFee,
-                    PLATFORM_STEAK_FEE
+                    PLATFORM_STEAK_FEE,
+                    USDC_KOL_MIN,
+                    USDC_KOL_MAX
                 ],
                 status: LaunchStatus.PENDING
             })
@@ -370,6 +376,14 @@ contract Launchpad is ILaunchpad, Ownable {
     /**
      * @inheritdoc ILaunchpad
      */
+    function setPledgeLimitsForKOLs(uint256 _min, uint256 _max) external onlyOwner {
+        if (_min > 0) USDC_KOL_MIN = _min * 1e6;
+        if (_max > 0) USDC_KOL_MAX = _max * 1e6;
+    }
+
+    /**
+     * @inheritdoc ILaunchpad
+     */
     function setSteakPlatformFee(uint256 _fee) external onlyOwner {
         require(_fee <= 2000); // 20%
         PLATFORM_STEAK_FEE = _fee;
@@ -450,8 +464,8 @@ contract Launchpad is ILaunchpad, Ownable {
             User memory user = User({minPledge: launchConfig.values[6], maxPledge: launchConfig.values[7]});
             if (block.timestamp < launchConfig.values[8] + launchConfig.values[0]) {
                 if (!isKOL[msg.sender]) revert UserIsNotKOL();
-                user.minPledge = launchConfig.values[6] * 10;
-                user.maxPledge = launchConfig.values[7] * 5;
+                user.minPledge = launchConfig.values[13];
+                user.maxPledge = launchConfig.values[14];
             } else if (_nftId != MAX_INT) {
                 if (isKOL[msg.sender]) revert UserIsKOL();
                 user.maxPledge = (user.maxPledge * _getMultiplier(_nftId)) / 10;
@@ -459,8 +473,8 @@ contract Launchpad is ILaunchpad, Ownable {
                 if (block.timestamp < launchConfig.values[8] + launchConfig.values[0] + launchConfig.values[1])
                     revert UserSaleNotStarted();
             } else {
-                user.minPledge = launchConfig.values[6] * 10;
-                user.maxPledge = launchConfig.values[7] * 5;
+                user.minPledge = launchConfig.values[13];
+                user.maxPledge = launchConfig.values[14];
             }
             Pledge storage userPledge = _nftId != MAX_INT
                 ? launchToNFTPledge[_launchId][_nftId]

@@ -513,6 +513,24 @@ const _abi = [
     inputs: [
       {
         internalType: "uint256",
+        name: "_min",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "_max",
+        type: "uint256",
+      },
+    ],
+    name: "setPledgeLimitsForKOLs",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
         name: "_softCap",
         type: "uint256",
       },

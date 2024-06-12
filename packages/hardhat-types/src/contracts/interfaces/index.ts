@@ -14,5 +14,4 @@ export type { INFTWithLevel } from "./INFTWithLevel";
 export type { IPublicSale } from "./IPublicSale";
 export type { IPublicSaleWithCutomToken } from "./IPublicSaleWithCutomToken";
 export type { ITeamVesting } from "./ITeamVesting";
-export type { ITokenWithLevel } from "./ITokenWithLevel";
 export type { IVesting } from "./IVesting";

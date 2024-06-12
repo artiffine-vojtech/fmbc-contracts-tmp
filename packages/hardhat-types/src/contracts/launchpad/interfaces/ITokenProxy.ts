@@ -25,7 +25,7 @@ import type {
 
 export interface ITokenProxyInterface extends utils.Interface {
   functions: {
-    "deposit(uint256,address)": FunctionFragment;
+    "deposit(uint256,uint8)": FunctionFragment;
     "withdraw(uint256)": FunctionFragment;
   };
 
@@ -33,7 +33,7 @@ export interface ITokenProxyInterface extends utils.Interface {
 
   encodeFunctionData(
     functionFragment: "deposit",
-    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<string>]
+    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "withdraw",
@@ -75,7 +75,7 @@ export interface ITokenProxy extends BaseContract {
   functions: {
     deposit(
       _amount: PromiseOrValue<BigNumberish>,
-      _onBehalfOf: PromiseOrValue<string>,
+      _lock: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
@@ -87,7 +87,7 @@ export interface ITokenProxy extends BaseContract {
 
   deposit(
     _amount: PromiseOrValue<BigNumberish>,
-    _onBehalfOf: PromiseOrValue<string>,
+    _lock: PromiseOrValue<BigNumberish>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
@@ -99,7 +99,7 @@ export interface ITokenProxy extends BaseContract {
   callStatic: {
     deposit(
       _amount: PromiseOrValue<BigNumberish>,
-      _onBehalfOf: PromiseOrValue<string>,
+      _lock: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -114,7 +114,7 @@ export interface ITokenProxy extends BaseContract {
   estimateGas: {
     deposit(
       _amount: PromiseOrValue<BigNumberish>,
-      _onBehalfOf: PromiseOrValue<string>,
+      _lock: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
@@ -127,7 +127,7 @@ export interface ITokenProxy extends BaseContract {
   populateTransaction: {
     deposit(
       _amount: PromiseOrValue<BigNumberish>,
-      _onBehalfOf: PromiseOrValue<string>,
+      _lock: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 

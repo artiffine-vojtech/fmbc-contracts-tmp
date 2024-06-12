@@ -2,15 +2,18 @@
 
 pragma solidity ^0.8.22;
 
+import '../interfaces/ITokenEmissionsController.sol';
+
+
 /// @title ITokenProxy
-/// @notice Proxy for FOMO single-staking proxy.
+/// @notice Proxy for ITokenEmissionsController.
 interface ITokenProxy {
     /**
      * @notice Deposit tokens to token controller via proxy
      * @param _amount Amount to deposit
-     * @param _onBehalfOf Address to deposit on behalf of
+     * @param _lock Lock time for the deposit
      */
-    function deposit(uint _amount, address _onBehalfOf) external;
+    function deposit(uint _amount, ITokenEmissionsController.LockTime  _lock) external;
 
     /**
      * @notice Withdraw tokens from the token controller via proxy

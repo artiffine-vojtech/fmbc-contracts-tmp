@@ -118,14 +118,14 @@ describe('Launchpad-Balancer', function () {
     console.log(totalSupply.toString())
     console.log((feePercent.mul(totalSupply)).div(parseEther("1")).toString())
 
-    // Deploy MaverickController
-    const maverickFactory = new TokenIncentivesController__factory(owner)
-    const maverickController = await maverickFactory.deploy(fomoUsdcLp.address, nft.address, fomo.address)
-    await maverickController.deployed()
+    // Deploy SteakController
+    const steakControllerFactory = new TokenIncentivesController__factory(owner)
+    const steakController = await steakControllerFactory.deploy(fomoUsdcLp.address, nft.address, fomo.address)
+    await steakController.deployed()
 
     // Deploy FOMOController
     // TODO: deploy correct 
-    const fomoController = await maverickFactory.deploy(fomoUsdcLp.address, nft.address, fomo.address)
+    const fomoController = await steakControllerFactory.deploy(fomoUsdcLp.address, nft.address, fomo.address)
     await fomoController.deployed()
 
     // Deploy NFTChecker
@@ -147,7 +147,7 @@ describe('Launchpad-Balancer', function () {
     const launchpadFactory = await env.ethers.getContractFactory("Launchpad", { signer: owner, libraries: { LaunchControl: libInstance.address } }) as Launchpad__factory;
     const launchpad = await launchpadFactory.deploy(
       fomoUsdcLp.address,
-      maverickController.address,
+      steakController.address,
       fomoController.address,
       nft.address,
       nftChecker.address,
@@ -156,13 +156,13 @@ describe('Launchpad-Balancer', function () {
       balancerDexProvider.address
     )
     await launchpad.deployed()
-    await maverickController.addAdmin(launchpad.address)
+    await steakController.addAdmin(launchpad.address)
     await fomoController.addAdmin(launchpad.address)
     await nftChecker.addAdmin(launchpad.address)
-    await nftChecker.addIncentivesController(maverickController.address)
+    await nftChecker.addIncentivesController(steakController.address)
     await nftChecker.addIncentivesController(fomoController.address)
 
-    const res0 = await maverickController.setWithdrawingAdmin(launchpad.address)
+    const res0 = await steakController.setWithdrawingAdmin(launchpad.address)
     await res0.wait()
 
     // Setup ERC20 and NFTs 
@@ -183,12 +183,12 @@ describe('Launchpad-Balancer', function () {
       .transfer(user.address, LP_AMOUNT)
     await res.wait()
 
-    // deposit 100k fomo usdc LP to maverick for user2
+    // deposit 100k fomo usdc LP to steak for user2
     const res2 = await fomoUsdcLp
       .connect(owner)
-      .approve(maverickController.address, LP_AMOUNT)
+      .approve(steakController.address, LP_AMOUNT)
     await res2.wait()
-    const res3 = await maverickController.deposit(LP_AMOUNT, user2.address);
+    const res3 = await steakController.deposit(LP_AMOUNT, user2.address);
     await res3.wait()
 
     const ownerBalanceAfter = await fomoUsdcLp.balanceOf(owner.address)
@@ -208,7 +208,7 @@ describe('Launchpad-Balancer', function () {
       fomoUsdcLp,
       launchpad,
       nftChecker,
-      maverickController,
+      steakController,
       fomoController,
       controllerFactory,
       balancerVaultAddress,
@@ -235,7 +235,7 @@ describe('Launchpad-Balancer', function () {
       fomoUsdcLp,
       launchpad,
       nftChecker,
-      maverickController,
+      steakController,
       controllerFactory,
       poolId,
       // accounts
@@ -269,7 +269,7 @@ describe('Launchpad-Balancer', function () {
       fomoUsdcLp,
       launchpad,
       nftChecker,
-      maverickController,
+      steakController,
       controllerFactory,
       poolId,
       // accounts
@@ -294,7 +294,7 @@ describe('Launchpad-Balancer', function () {
       fomoUsdcLp,
       launchpad,
       nftChecker,
-      maverickController,
+      steakController,
       controllerFactory,
       poolId,
       // accounts
@@ -328,7 +328,7 @@ describe('Launchpad-Balancer', function () {
       fomoUsdcLp,
       launchpad,
       nftChecker,
-      maverickController,
+      steakController,
       controllerFactory,
       poolId,
       // accounts
@@ -353,7 +353,7 @@ describe('Launchpad-Balancer', function () {
       fomoUsdcLp,
       launchpad,
       nftChecker,
-      maverickController,
+      steakController,
       controllerFactory,
       poolId,
       // accounts
@@ -378,7 +378,7 @@ describe('Launchpad-Balancer', function () {
       fomoUsdcLp,
       launchpad,
       nftChecker,
-      maverickController,
+      steakController,
       controllerFactory,
       poolId,
       // accounts
@@ -403,7 +403,7 @@ describe('Launchpad-Balancer', function () {
       fomoUsdcLp,
       launchpad,
       nftChecker,
-      maverickController,
+      steakController,
       fomoController,
       controllerFactory,
       balancerVaultAddress,
@@ -442,7 +442,7 @@ describe('Launchpad-Balancer', function () {
       fomoUsdcLp,
       launchpad,
       nftChecker,
-      maverickController,
+      steakController,
       fomoController,
       controllerFactory,
       balancerVaultAddress,
@@ -568,7 +568,9 @@ describe('Launchpad-Balancer', function () {
       rounds: [launch[7][0], launch[7][1], launch[7][2]],
       status: launch.status,
       steakTeamFee: launch[7][11],
-      steakPlatformFee: launch[7][12]
+      steakPlatformFee: launch[7][12],
+      minPledgeKOLs: launch[7][13],
+      maxPledgeKOLs: launch[7][14],
     }
   }
 
@@ -740,7 +742,7 @@ describe('Launchpad-Balancer', function () {
       await expect(action).to.be.revertedWith('BAL#416')
     })
 
-    it('Should revert if user has too little lpt in maverick', async () => {
+    it('Should revert if user has too little lpt in steak', async () => {
       const { launchpad, fomoUsdcLp, user3, team, owner } = await loadFixture(deployContractFixture)
       const config = createLaunchConfig(1e9, 250000, team.address, user3.address)
       await fomoUsdcLp.connect(user3).approve(launchpad.address, constants.MaxUint256)
@@ -760,18 +762,18 @@ describe('Launchpad-Balancer', function () {
       expect(await fomoUsdcLp.balanceOf(user.address)).to.be.eq(userBalanceBefore.sub(LP_5K))
     })
 
-    it('Should transfer correct lpt amounts from maverick', async () => {
-      const { launchpad, maverickController, fomoUsdcLp, user2, user3, team, owner } = await loadFixture(deployContractFixture)
+    it('Should transfer correct lpt amounts from steak', async () => {
+      const { launchpad, steakController, fomoUsdcLp, user2, user3, team, owner } = await loadFixture(deployContractFixture)
       const config = createLaunchConfig(1e9, 250000, team.address, user3.address)
       const balanceBefore = await fomoUsdcLp.balanceOf(launchpad.address)
       const userBalanceBefore = await fomoUsdcLp.balanceOf(user2.address)
-      const maverickBalanceBefore = await fomoUsdcLp.balanceOf(maverickController.address)
+      const steakBalanceBefore = await fomoUsdcLp.balanceOf(steakController.address)
       await launchpad.connect(user2).createLaunch(config, true, await getUserVerificationData(user2.address, owner))
       expect(balanceBefore).to.be.eq(0)
       expect(userBalanceBefore).to.be.eq(0)
       expect(await fomoUsdcLp.balanceOf(user2.address)).to.be.eq(0)
       expect(await fomoUsdcLp.balanceOf(launchpad.address)).to.be.eq(LP_5K)
-      expect(await fomoUsdcLp.balanceOf(maverickController.address)).to.be.eq(maverickBalanceBefore.sub(LP_5K))
+      expect(await fomoUsdcLp.balanceOf(steakController.address)).to.be.eq(steakBalanceBefore.sub(LP_5K))
     })
 
     it('Should add Allocations with zero values', async () => {
@@ -863,6 +865,8 @@ describe('Launchpad-Balancer', function () {
       expect(launch.hardCap).to.be.eq(BigNumber.from(await config.hardCap).mul(1e6));
       expect(launch.minPledge).to.be.eq(await launchpad.USDC_MIN());
       expect(launch.maxPladge).to.be.eq(await launchpad.USDC_MAX());
+      expect(launch.minPledgeKOLs).to.be.eq(await launchpad.USDC_KOL_MIN());
+      expect(launch.maxPledgeKOLs).to.be.eq(await launchpad.USDC_KOL_MAX());
       expect(launch.startTime).to.be.eq(timestamp);
       expect(launch.raisedLP).to.be.eq(LP_5K);
       expect(launch.raisedLPKOL).to.be.eq(0);
@@ -924,7 +928,7 @@ describe('Launchpad-Balancer', function () {
       await expect(action).to.be.revertedWith('BAL#416')
     })
 
-    it('Should fail if user has too little lpt in maverick', async () => {
+    it('Should fail if user has too little lpt in steak', async () => {
       const { launchpad, fomoUsdcLp, user3, SIGNED_DATA } = await loadFixture(deployContractFixtureWithLaunch)
       await launchpad.setKolAddresses([user3.address], [true])
       await fomoUsdcLp.connect(user3).approve(launchpad.address, constants.MaxUint256)
@@ -1138,7 +1142,7 @@ describe('Launchpad-Balancer', function () {
         expect(await fomoUsdcLp.balanceOf(launchpad.address)).to.be.eq(balanceBefore.add(LP_500))
       })
 
-      it('Should transfer min pledge tokens succesfully using maverick', async () => {
+      it('Should transfer min pledge tokens succesfully using steak', async () => {
         const { launchpad, user2, fomoUsdcLp, SIGNED_DATA } = await loadFixture(deployContractFixtureWithLaunch)
         await launchpad.setKolAddresses([user2.address], [true])
         const balanceBefore = await fomoUsdcLp.balanceOf(launchpad.address)
@@ -1159,7 +1163,7 @@ describe('Launchpad-Balancer', function () {
         expect(await fomoUsdcLp.balanceOf(launchpad.address)).to.be.eq(balanceBefore.add(LP_5K))
       })
 
-      it('Should transfer min pledge tokens succesfully using maverick', async () => {
+      it('Should transfer min pledge tokens succesfully using steak', async () => {
         const { launchpad, user2, fomoUsdcLp, SIGNED_DATA } = await loadFixture(deployContractFixtureWithLaunch)
         await launchpad.setKolAddresses([user2.address], [true])
         const balanceBefore = await fomoUsdcLp.balanceOf(launchpad.address)
@@ -1285,7 +1289,7 @@ describe('Launchpad-Balancer', function () {
         expect(await fomoUsdcLp.balanceOf(launchpad.address)).to.be.eq(balanceBefore.add(LP_50))
       })
 
-      it('Should transfer min pledge tokens succesfully using maverick', async () => {
+      it('Should transfer min pledge tokens succesfully using steak', async () => {
         const { launchpad, user2, fomoUsdcLp, SIGNED_DATA } = await loadFixture(deployContractFixtureWithLaunchAfter8Days)
         const balanceBefore = await fomoUsdcLp.balanceOf(launchpad.address)
         const action = launchpad.connect(user2).pledge(0, LP_50, true, SIGNED_DATA[2])
@@ -1304,7 +1308,7 @@ describe('Launchpad-Balancer', function () {
         expect(await fomoUsdcLp.balanceOf(launchpad.address)).to.be.eq(balanceBefore.add(LP_1K))
       })
 
-      it('Should transfer min pledge tokens succesfully using maverick', async () => {
+      it('Should transfer min pledge tokens succesfully using steak', async () => {
         const { launchpad, user2, fomoUsdcLp, SIGNED_DATA } = await loadFixture(deployContractFixtureWithLaunchAfter8Days)
         const balanceBefore = await fomoUsdcLp.balanceOf(launchpad.address)
         const action = launchpad.connect(user2).pledge(0, LP_5K, true, SIGNED_DATA[2])
@@ -1413,7 +1417,7 @@ describe('Launchpad-Balancer', function () {
       await expect(action).to.be.revertedWith('BAL#416')
     })
 
-    it('Should revert if user has too little lpt in maverick', async () => {
+    it('Should revert if user has too little lpt in steak', async () => {
       const { launchpad, user, fomoUsdcLp, SIGNED_DATA } = await loadFixture(deployContractFixtureWithLaunchAfter1Days)
       await fomoUsdcLp.connect(user).approve(launchpad.address, constants.MaxUint256)
       const action = launchpad.connect(user).pledgeWithNFT(0, LP_50, true, 1, constants.AddressZero, SIGNED_DATA[1])
@@ -1631,7 +1635,7 @@ describe('Launchpad-Balancer', function () {
       expect(await fomoUsdcLp.balanceOf(launchpad.address)).to.be.eq(balanceBefore.add(LP_50))
     })
 
-    it('Should transfer min pledge tokens succesfully using maverick', async () => {
+    it('Should transfer min pledge tokens succesfully using steak', async () => {
       const { launchpad, fomoUsdcLp, user2, SIGNED_DATA } = await loadFixture(deployContractFixtureWithLaunchAfter1Days)
       const balanceBefore = await fomoUsdcLp.balanceOf(launchpad.address)
       await launchpad.connect(user2).pledgeWithNFT(0, LP_50, true, 0, constants.AddressZero, SIGNED_DATA[2])
@@ -1863,8 +1867,8 @@ describe('Launchpad-Balancer', function () {
       expect(await meme.balanceOf(fomoLPIC.address)).to.be.eq((await meme.totalSupply()).mul(175).div(10_000))
     })
 
-    it('Should notify maverick, meme and fomo controller for 0.5% of meme supply each', async () => {
-      const { launchpad, user, maverickController, fomoController } = await loadFixture(deployContractFixtureWithHardCapReached)
+    it('Should notify steak, meme and fomo controller for 0.5% of meme supply each', async () => {
+      const { launchpad, user, steakController, fomoController } = await loadFixture(deployContractFixtureWithHardCapReached)
       await launchpad.connect(user).launch(0)
       const alloc = await launchpad.tokenAddresses(0)
       const meme = await env.ethers.getContractAt("ERC20", alloc.token) as ERC20;
@@ -1872,7 +1876,7 @@ describe('Launchpad-Balancer', function () {
 
       expect(await meme.balanceOf(memeIC.address)).to.be.eq((await meme.totalSupply()).mul(50).div(10_000))
       expect(await meme.balanceOf(fomoController.address)).to.be.eq((await meme.totalSupply()).mul(50).div(10_000))
-      expect(await meme.balanceOf(maverickController.address)).to.be.eq((await meme.totalSupply()).mul(50).div(10_000))
+      expect(await meme.balanceOf(steakController.address)).to.be.eq((await meme.totalSupply()).mul(50).div(10_000))
     })
 
     it('Should start emissions on incentivesControllers', async () => {
@@ -2470,19 +2474,19 @@ describe('Launchpad-Balancer', function () {
       expect(await fomoUsdcLp.balanceOf(user2.address)).to.be.eq(balanceBefore.add(LP_500))
     })
 
-    it('Should deposit tokens to maverick correctly', async () => {
-      const { launchpad, user2, fomoUsdcLp, maverickController, SIGNED_DATA } = await loadFixture(deployContractFixtureWithLaunchAfter1Days)
+    it('Should deposit tokens to steak correctly', async () => {
+      const { launchpad, user2, fomoUsdcLp, steakController, SIGNED_DATA } = await loadFixture(deployContractFixtureWithLaunchAfter1Days)
       const launchBefore = await getLaunchConfig(launchpad, 0)
       await launchpad.connect(user2).pledgeWithNFT(0, LP_500, true, 0, constants.AddressZero, SIGNED_DATA[2])
       await ethers.provider.send('evm_setNextBlockTimestamp', [
         launchBefore.startTime.add(BigNumber.from('86400').mul(15)).toNumber(),
       ])
       await launchpad.connect(user2).launch(0)
-      const balanceBefore = await fomoUsdcLp.balanceOf(maverickController.address)
-      const stakedBefore = await maverickController.balances(user2.address)
+      const balanceBefore = await fomoUsdcLp.balanceOf(steakController.address)
+      const stakedBefore = await steakController.balances(user2.address)
       await launchpad.connect(user2).getFundsBack(0, true)
-      const balance = await maverickController.balances(user2.address)
-      expect(await fomoUsdcLp.balanceOf(maverickController.address)).to.be.eq(balanceBefore.add(LP_500))
+      const balance = await steakController.balances(user2.address)
+      expect(await fomoUsdcLp.balanceOf(steakController.address)).to.be.eq(balanceBefore.add(LP_500))
       expect(balance.staked).to.be.eq(stakedBefore.staked.add(LP_500))
     })
 
