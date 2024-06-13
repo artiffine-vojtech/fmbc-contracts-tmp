@@ -25,8 +25,9 @@ contract TokenProxy is ERC20, Ownable, ITokenProxy {
      */
     function deposit(uint _amount, ITokenEmissionsController.LockTime _lock) external {
         proxiedToken.safeTransferFrom(msg.sender, address(this), _amount);
-        _mint(address(controller), _amount);
-        controller.deposit(_amount, _lock);
+        _mint(address(this), _amount);
+        _approve(address(this), address(controller), _amount);
+        controller.deposit(_amount, msg.sender, _lock);
     }
 
     /**

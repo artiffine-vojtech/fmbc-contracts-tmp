@@ -12,7 +12,7 @@ interface ITokenEmissionsController is ITokenControllerCommons {
      * @param _amount Amount of staking token to deposit.
      * @param _lock Lock time for the deposit.
      */
-    function deposit(uint _amount, LockTime _lock) external;
+    function deposit(uint _amount, address _onBehalfOf, LockTime _lock) external;
 
     /**
      * @notice Start token emissions.

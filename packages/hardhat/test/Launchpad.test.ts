@@ -1766,7 +1766,7 @@ describe('Launchpad', function () {
     })
   })
 
-  describe('Launch', async () => {
+  describe.only('Launch', async () => {
     it('Estimage gas', async () => {
       const { launchpad, user } = await loadFixture(deployContractFixtureWithHardCapReached)
       const launchBefore = await getLaunchConfig(launchpad, 0)

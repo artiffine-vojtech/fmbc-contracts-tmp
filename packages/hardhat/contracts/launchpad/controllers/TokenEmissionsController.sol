@@ -86,10 +86,11 @@ contract TokenEmissionsController is ITokenEmissionsController, Adminable {
     /**
      * @inheritdoc ITokenEmissionsController
      */
-    function deposit(uint _amount, LockTime _lock) external {
+    function deposit(uint _amount, address _onBehalfOf, LockTime _lock) external {
+        require(msg.sender == _onBehalfOf || msg.sender == withdrawingAdmin, 'Not withdrawing admin');
         require(_amount > 0, 'Amount is zero');
-        _updateReward(msg.sender, rewardTokens);
-        Balances storage bal = balances[msg.sender];
+        _updateReward(_onBehalfOf, rewardTokens);
+        Balances storage bal = balances[_onBehalfOf];
         bal.staked = bal.staked.add(_amount);
         bal.lockBoost = (uint256(_lock).mul(5)).add(10);
         bal.lockScaled = bal.staked.mul(bal.lockBoost).div(10);
@@ -100,9 +101,9 @@ contract TokenEmissionsController is ITokenEmissionsController, Adminable {
         }
         totalScaled = totalScaled.sub(bal.scaled).add(scaled);
         bal.scaled = scaled;
-        userLockTime[msg.sender] = block.timestamp.add(60 days).add(uint256(_lock).mul(30 days));
+        userLockTime[_onBehalfOf] = block.timestamp.add(60 days).add(uint256(_lock).mul(30 days));
         stakingToken.safeTransferFrom(msg.sender, address(this), _amount);
-        emit Deposited(msg.sender, _amount, scaled);
+        emit Deposited(_onBehalfOf, _amount, scaled);
     }
 
     /**

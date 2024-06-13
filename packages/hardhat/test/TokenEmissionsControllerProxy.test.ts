@@ -9,7 +9,7 @@ import {
   bin,
 } from '../../hardhat-types/src/factories/contracts'
 import { BigNumber } from 'ethers'
-import { TokenEmissionsController__factory } from '../../hardhat-types/src'
+import { TokenEmissionsController__factory, TokenProxy__factory } from '../../hardhat-types/src'
 const { FMBCTokenERC20__factory } = bin
 
 const K100_TOKENS = parseEther(`${100_000}`)
@@ -23,9 +23,13 @@ describe('TokenEmissionsController', function () {
 
     // deploy the ERC20 contract
     const erc20ContractFactory = new FMBCTokenERC20__factory(owner)
-    const stakingToken = await erc20ContractFactory.deploy(
+    const realToken = await erc20ContractFactory.deploy(
       parseEther(`${100_000_000_000}`)
     )
+    await realToken.deployed()
+
+    const proxyFactory = new TokenProxy__factory(owner)
+    const stakingToken = await proxyFactory.deploy("PROXY NAME", "PROXY SYMBOL", realToken.address)
     await stakingToken.deployed()
 
     const rewardToken = await erc20ContractFactory.deploy(
@@ -56,41 +60,43 @@ describe('TokenEmissionsController', function () {
       stakingToken.address,
       nftContract.address,
       rewardToken.address,
-      withdrawingAdmin.address
+      stakingToken.address
     )
     await incentivesController.deployed()
 
+    // await incentivesController.set
+    await stakingToken.setController(incentivesController.address)
     await rewardToken.approve(incentivesController.address, K100_TOKENS.add(K100_TOKENS))
     await rewardToken2.approve(incentivesController.address, K100_TOKENS.add(K100_TOKENS))
 
-    const ownerBalance = await stakingToken.balanceOf(owner.address)
+    const ownerBalance = await realToken.balanceOf(owner.address)
     console.log('owner balance before transfer', ownerBalance.toString())
 
     // transfer 100k FMBC to user
-    const res = await stakingToken
+    const res = await realToken
       .connect(owner)
       .transfer(user.address, K100_TOKENS)
     await res.wait()
 
     // transfer 100k FMBC to user2
-    const res2 = await stakingToken
+    const res2 = await realToken
       .connect(owner)
       .transfer(user2.address, K100_TOKENS)
     await res2.wait()
 
     // Approve 100k FMBC to user2
-    const res3 = await stakingToken
+    const res3 = await realToken
       .connect(user)
-      .approve(incentivesController.address, K100_TOKENS)
+      .approve(stakingToken.address, K100_TOKENS)
     await res3.wait()
 
     // Approve 100k FMBC to user2
-    const res4 = await stakingToken
+    const res4 = await realToken
       .connect(user2)
-      .approve(incentivesController.address, K100_TOKENS)
+      .approve(stakingToken.address, K100_TOKENS)
     await res4.wait()
 
-    const ownerBalanceAfter = await stakingToken.balanceOf(owner.address)
+    const ownerBalanceAfter = await realToken.balanceOf(owner.address)
     console.log('owner balance after transfer', ownerBalanceAfter.toString())
 
     await nftContract.connect(owner).freeMint([1, 1, 1, 1, 1], user.address)
@@ -98,6 +104,7 @@ describe('TokenEmissionsController', function () {
 
     return {
       // contracts
+      realToken,
       stakingToken,
       nftContract,
       incentivesController,
@@ -114,6 +121,7 @@ describe('TokenEmissionsController', function () {
 
   async function deployContractFixtureWithEmissionsStarted() {
     const {
+      realToken,
       stakingToken,
       nftContract,
       incentivesController,
@@ -144,6 +152,7 @@ describe('TokenEmissionsController', function () {
     }
     await incentivesController.startEmissions([emission0, emission1, emission2, emission3])
     return {
+      realToken,
       stakingToken,
       nftContract,
       incentivesController,
@@ -162,6 +171,7 @@ describe('TokenEmissionsController', function () {
 
   async function deployContractFixtureWithUserStakedFor60Days() {
     const {
+      realToken,
       stakingToken,
       nftContract,
       incentivesController,
@@ -177,8 +187,9 @@ describe('TokenEmissionsController', function () {
     await ethers.provider.send('evm_setNextBlockTimestamp', [
       currentTimestmap.toNumber(),
     ])
-    await incentivesController.connect(user).deposit(K1_TOKENS, user.address, 0)
+    await stakingToken.connect(user).deposit(K1_TOKENS, 0)
     return {
+      realToken,
       stakingToken,
       nftContract,
       incentivesController,
@@ -194,6 +205,7 @@ describe('TokenEmissionsController', function () {
 
   async function deployContractFixtureWithUserStakedFor60DaysAfter60Days() {
     const {
+      realToken,
       stakingToken,
       nftContract,
       incentivesController,
@@ -205,7 +217,7 @@ describe('TokenEmissionsController', function () {
       user3,
       withdrawingAdmin
     } = await loadFixture(deployContractFixtureWithEmissionsStarted)
-    await incentivesController.connect(user).deposit(K1_TOKENS, user.address, 0)
+    await stakingToken.connect(user).deposit(K1_TOKENS, 0)
     const currentTimestmap = BigNumber.from(
       (await ethers.provider.getBlock('latest')).timestamp
     )
@@ -213,6 +225,7 @@ describe('TokenEmissionsController', function () {
       currentTimestmap.add(BigNumber.from(60).mul('86400')).toNumber(),
     ])
     return {
+      realToken,
       stakingToken,
       nftContract,
       incentivesController,
@@ -228,6 +241,7 @@ describe('TokenEmissionsController', function () {
 
   async function deployContractFixtureWithUserStakedFor90Days() {
     const {
+      realToken,
       stakingToken,
       nftContract,
       incentivesController,
@@ -238,8 +252,9 @@ describe('TokenEmissionsController', function () {
       user2,
       user3,
     } = await loadFixture(deployContractFixtureWithEmissionsStarted)
-    await incentivesController.connect(user).deposit(K1_TOKENS, user.address, 1)
+    await stakingToken.connect(user).deposit(K1_TOKENS, 1)
     return {
+      realToken,
       stakingToken,
       nftContract,
       incentivesController,
@@ -254,6 +269,7 @@ describe('TokenEmissionsController', function () {
 
   async function deployContractFixtureWithUserStakedFor90DaysAfter90Days() {
     const {
+      realToken,
       stakingToken,
       nftContract,
       incentivesController,
@@ -264,7 +280,7 @@ describe('TokenEmissionsController', function () {
       user2,
       user3,
     } = await loadFixture(deployContractFixtureWithEmissionsStarted)
-    await incentivesController.connect(user).deposit(K1_TOKENS, user.address, 1)
+    await stakingToken.connect(user).deposit(K1_TOKENS, 1)
     const currentTimestmap = BigNumber.from(
       (await ethers.provider.getBlock('latest')).timestamp
     )
@@ -272,6 +288,7 @@ describe('TokenEmissionsController', function () {
       currentTimestmap.add(BigNumber.from(90).mul('86400')).toNumber(),
     ])
     return {
+      realToken,
       stakingToken,
       nftContract,
       incentivesController,
@@ -286,6 +303,7 @@ describe('TokenEmissionsController', function () {
 
   async function deployContractFixtureWithUserStakedFor120Days() {
     const {
+      realToken,
       stakingToken,
       nftContract,
       incentivesController,
@@ -296,8 +314,9 @@ describe('TokenEmissionsController', function () {
       user2,
       user3,
     } = await loadFixture(deployContractFixtureWithEmissionsStarted)
-    await incentivesController.connect(user).deposit(K1_TOKENS, user.address, 2)
+    await stakingToken.connect(user).deposit(K1_TOKENS, 2)
     return {
+      realToken,
       stakingToken,
       nftContract,
       incentivesController,
@@ -312,6 +331,7 @@ describe('TokenEmissionsController', function () {
 
   async function deployContractFixtureWithUserStakedFor120DaysAfter120Days() {
     const {
+      realToken,
       stakingToken,
       nftContract,
       incentivesController,
@@ -322,7 +342,7 @@ describe('TokenEmissionsController', function () {
       user2,
       user3,
     } = await loadFixture(deployContractFixtureWithEmissionsStarted)
-    await incentivesController.connect(user).deposit(K1_TOKENS, user.address, 2)
+    await stakingToken.connect(user).deposit(K1_TOKENS, 2)
     const currentTimestmap = BigNumber.from(
       (await ethers.provider.getBlock('latest')).timestamp
     )
@@ -346,12 +366,12 @@ describe('TokenEmissionsController', function () {
     it('Should be the right set staking token', async () => {
       const { incentivesController, stakingToken } = await loadFixture(deployContractFixture)
       const tokenAddress: string = await incentivesController.stakingToken()
-      expect(stakingToken.address).to.be.equals(tokenAddress)
+      expect(stakingToken.address).to.be.eq(tokenAddress)
     })
     it('Should be the right set booster nft', async () => {
       const { incentivesController, nftContract } = await loadFixture(deployContractFixture)
       const boosterNftAddress: string = await incentivesController.boosterNFT()
-      expect(nftContract.address).to.be.equals(boosterNftAddress)
+      expect(nftContract.address).to.be.eq(boosterNftAddress)
     })
 
     it("Should have the right reward token", async function () {
@@ -360,8 +380,8 @@ describe('TokenEmissionsController', function () {
     });
 
     it("Should have the right withdrawing admin", async function () {
-      const { incentivesController, withdrawingAdmin } = await loadFixture(deployContractFixture)
-      expect(await incentivesController.withdrawingAdmin()).to.equal(withdrawingAdmin.address);
+      const { incentivesController, stakingToken } = await loadFixture(deployContractFixture)
+      expect(await incentivesController.withdrawingAdmin()).to.equal(stakingToken.address);
     });
   })
 
@@ -428,48 +448,54 @@ describe('TokenEmissionsController', function () {
     });
   });
 
-  describe('Deposit', () => {
+  describe('Deposit (Proxy)', () => {
     it('Should revert on amount zero', async () => {
-      const { incentivesController, user } = await loadFixture(
+      const { stakingToken, user } = await loadFixture(
         deployContractFixtureWithEmissionsStarted
       )
-      let action = incentivesController.connect(user).deposit(0, user.address, 0)
+      let action = stakingToken.connect(user).deposit(0, 0)
       await expect(action).to.be.revertedWith('Amount is zero')
     })
 
     it('Should set up lock time correctly', async () => {
-      const { incentivesController, user } = await loadFixture(
+      const { incentivesController, stakingToken, user } = await loadFixture(
         deployContractFixtureWithEmissionsStarted
       )
-      await incentivesController.connect(user).deposit(K1_TOKENS, user.address, 1)
+      await stakingToken.connect(user).deposit(K1_TOKENS, 1)
       var latestBlock = await ethers.provider.getBlock('latest')
       expect(await incentivesController.userLockTime(user.address)).to.be.eq(latestBlock.timestamp + ONE_DAY * 90)
 
-      await incentivesController.connect(user).deposit(K1_TOKENS, user.address, 0)
+      await stakingToken.connect(user).deposit(K1_TOKENS, 0)
       latestBlock = await ethers.provider.getBlock('latest')
       expect(await incentivesController.userLockTime(user.address)).to.be.eq(latestBlock.timestamp + ONE_DAY * 60)
 
-      await incentivesController.connect(user).deposit(K1_TOKENS, user.address, 2)
+      await stakingToken.connect(user).deposit(K1_TOKENS, 2)
       latestBlock = await ethers.provider.getBlock('latest')
       expect(await incentivesController.userLockTime(user.address)).to.be.eq(latestBlock.timestamp + ONE_DAY * 120)
     })
 
     it('Should transfer correct amount', async () => {
-      const { incentivesController, user, stakingToken } = await loadFixture(
+      const { realToken, user, incentivesController, stakingToken } = await loadFixture(
         deployContractFixtureWithEmissionsStarted
       )
-      let balanceBefore = await stakingToken.balanceOf(user.address)
-      await incentivesController.connect(user).deposit(K1_TOKENS, user.address, 0)
-      expect(await stakingToken.balanceOf(user.address)).to.be.equals(
+      let balanceBefore = await realToken.balanceOf(user.address)
+      await stakingToken.connect(user).deposit(K1_TOKENS, 0)
+      expect(await realToken.balanceOf(user.address)).to.be.eq(
         balanceBefore.sub(K1_TOKENS)
+      )
+      expect(await realToken.balanceOf(stakingToken.address)).to.be.eq(
+        K1_TOKENS
+      )
+      expect(await stakingToken.balanceOf(incentivesController.address)).to.be.eq(
+        K1_TOKENS
       )
     })
 
     it('Should set balances correctly for 60 day lock', async () => {
-      const { incentivesController, user } = await loadFixture(
+      const { incentivesController, user, stakingToken } = await loadFixture(
         deployContractFixtureWithEmissionsStarted
       )
-      await incentivesController.connect(user).deposit(K1_TOKENS, user.address, 0)
+      await stakingToken.connect(user).deposit(K1_TOKENS, 0)
       let balance = await incentivesController.balances(user.address)
       expect(balance.boosted).to.be.false
       expect(balance.staked).to.be.eq(K1_TOKENS)
@@ -480,10 +506,10 @@ describe('TokenEmissionsController', function () {
     })
 
     it('Should set balances correctly for 90 day lock', async () => {
-      const { incentivesController, user } = await loadFixture(
+      const { incentivesController, user, stakingToken } = await loadFixture(
         deployContractFixtureWithEmissionsStarted
       )
-      await incentivesController.connect(user).deposit(K1_TOKENS, user.address, 1)
+      await stakingToken.connect(user).deposit(K1_TOKENS, 1)
       let balance = await incentivesController.balances(user.address)
       expect(balance.boosted).to.be.false
       expect(balance.staked).to.be.eq(K1_TOKENS)
@@ -494,10 +520,10 @@ describe('TokenEmissionsController', function () {
     })
 
     it('Should set balances correctly for 120 day lock', async () => {
-      const { incentivesController, user } = await loadFixture(
+      const { incentivesController, user, stakingToken } = await loadFixture(
         deployContractFixtureWithEmissionsStarted
       )
-      await incentivesController.connect(user).deposit(K1_TOKENS, user.address, 2)
+      await stakingToken.connect(user).deposit(K1_TOKENS, 2)
       let balance = await incentivesController.balances(user.address)
       expect(balance.boosted).to.be.false
       expect(balance.staked).to.be.eq(K1_TOKENS)
@@ -508,11 +534,11 @@ describe('TokenEmissionsController', function () {
     })
 
     it('Should set balances correctly for consecutive lock', async () => {
-      const { incentivesController, user } = await loadFixture(
+      const { incentivesController, stakingToken, user } = await loadFixture(
         deployContractFixtureWithEmissionsStarted
       )
-      await incentivesController.connect(user).deposit(K1_TOKENS, user.address, 2)
-      await incentivesController.connect(user).deposit(K1_TOKENS, user.address, 1)
+      await stakingToken.connect(user).deposit(K1_TOKENS, 2)
+      await stakingToken.connect(user).deposit(K1_TOKENS, 1)
       let balance = await incentivesController.balances(user.address)
       expect(balance.boosted).to.be.false
       expect(balance.staked).to.be.eq(K1_TOKENS.mul(2))
@@ -523,26 +549,26 @@ describe('TokenEmissionsController', function () {
     })
 
     it('Should emit Deposited event with _amount == scaled', async () => {
-      const { incentivesController, user } = await loadFixture(
+      const { incentivesController, user, stakingToken } = await loadFixture(
         deployContractFixtureWithEmissionsStarted
       )
-      var action = incentivesController
+      var action = stakingToken
         .connect(user)
-        .deposit(K1_TOKENS, user.address, 0)
+        .deposit(K1_TOKENS, 0)
       await expect(action)
         .to.emit(incentivesController, 'Deposited')
         .withArgs(user.address, K1_TOKENS, K1_TOKENS)
 
-      var action = incentivesController
+      var action = stakingToken
         .connect(user)
-        .deposit(K1_TOKENS, user.address, 1)
+        .deposit(K1_TOKENS, 1)
       await expect(action)
         .to.emit(incentivesController, 'Deposited')
         .withArgs(user.address, K1_TOKENS, K1_TOKENS.mul(3))
 
-      var action = incentivesController
+      var action = stakingToken
         .connect(user)
-        .deposit(K1_TOKENS, user.address, 2)
+        .deposit(K1_TOKENS, 2)
       await expect(action)
         .to.emit(incentivesController, 'Deposited')
         .withArgs(user.address, K1_TOKENS, K1_TOKENS.mul(6))
@@ -551,14 +577,14 @@ describe('TokenEmissionsController', function () {
     // TODO add all NFT cases
     describe('After staked NFT', async () => {
       it('Should set balances correctly for 60 day lock', async () => {
-        const { incentivesController, user, nftContract } = await loadFixture(
+        const { incentivesController, user, nftContract, stakingToken } = await loadFixture(
           deployContractFixtureWithEmissionsStarted
         )
         await nftContract.connect(user).approve(incentivesController.address, 0)
         await incentivesController.connect(user).stakeNFT(0)
-        await incentivesController
+        await stakingToken
           .connect(user)
-          .deposit(K1_TOKENS, user.address, 0)
+          .deposit(K1_TOKENS, 0)
         let balance = await incentivesController.balances(user.address)
         expect(balance.boosted).to.be.true
         expect(balance.staked).to.be.eq(K1_TOKENS)
@@ -571,14 +597,14 @@ describe('TokenEmissionsController', function () {
       })
 
       it('Should set balances correctly for 90 day lock', async () => {
-        const { incentivesController, user, nftContract } = await loadFixture(
+        const { incentivesController, user, nftContract, stakingToken } = await loadFixture(
           deployContractFixtureWithEmissionsStarted
         )
         await nftContract.connect(user).approve(incentivesController.address, 0)
         await incentivesController.connect(user).stakeNFT(0)
-        await incentivesController
+        await stakingToken
           .connect(user)
-          .deposit(K1_TOKENS, user.address, 1)
+          .deposit(K1_TOKENS, 1)
         let balance = await incentivesController.balances(user.address)
         expect(balance.boosted).to.be.true
         expect(balance.staked).to.be.eq(K1_TOKENS)
@@ -591,14 +617,14 @@ describe('TokenEmissionsController', function () {
       })
 
       it('Should set balances correctly for 120 day lock', async () => {
-        const { incentivesController, user, nftContract } = await loadFixture(
+        const { incentivesController, user, nftContract, stakingToken } = await loadFixture(
           deployContractFixtureWithEmissionsStarted
         )
         await nftContract.connect(user).approve(incentivesController.address, 0)
         await incentivesController.connect(user).stakeNFT(0)
-        await incentivesController
+        await stakingToken
           .connect(user)
-          .deposit(K1_TOKENS, user.address, 2)
+          .deposit(K1_TOKENS, 2)
         let balance = await incentivesController.balances(user.address)
         expect(balance.boosted).to.be.true
         expect(balance.staked).to.be.eq(K1_TOKENS)
@@ -611,13 +637,13 @@ describe('TokenEmissionsController', function () {
       })
 
       it('Should set balances correctly for consecutive lock', async () => {
-        const { incentivesController, user, nftContract } = await loadFixture(
+        const { incentivesController, user, nftContract, stakingToken } = await loadFixture(
           deployContractFixtureWithEmissionsStarted
         )
         await nftContract.connect(user).approve(incentivesController.address, 0)
         await incentivesController.connect(user).stakeNFT(0)
-        await incentivesController.connect(user).deposit(K1_TOKENS, user.address, 2)
-        await incentivesController.connect(user).deposit(K1_TOKENS, user.address, 1)
+        await stakingToken.connect(user).deposit(K1_TOKENS, 2)
+        await stakingToken.connect(user).deposit(K1_TOKENS, 1)
         let balance = await incentivesController.balances(user.address)
         expect(balance.boosted).to.be.true
         expect(balance.staked).to.be.eq(K1_TOKENS.mul(2))
@@ -628,28 +654,28 @@ describe('TokenEmissionsController', function () {
       })
 
       it('Should emit Deposited events correctly', async () => {
-        const { incentivesController, user, nftContract } = await loadFixture(
+        const { incentivesController, user, nftContract, stakingToken } = await loadFixture(
           deployContractFixtureWithEmissionsStarted
         )
         await nftContract.connect(user).approve(incentivesController.address, 0)
         await incentivesController.connect(user).stakeNFT(0)
-        var action = incentivesController
+        var action = stakingToken
           .connect(user)
-          .deposit(K1_TOKENS, user.address, 0)
+          .deposit(K1_TOKENS, 0)
         await expect(action)
           .to.emit(incentivesController, 'Deposited')
           .withArgs(user.address, K1_TOKENS, K1_TOKENS.mul(15).div(10))
 
-        var action = incentivesController
+        var action = stakingToken
           .connect(user)
-          .deposit(K1_TOKENS, user.address, 1)
+          .deposit(K1_TOKENS, 1)
         await expect(action)
           .to.emit(incentivesController, 'Deposited')
           .withArgs(user.address, K1_TOKENS, K1_TOKENS.mul(30).div(10).mul(15).div(10))
 
-        var action = incentivesController
+        var action = stakingToken
           .connect(user)
-          .deposit(K1_TOKENS, user.address, 2)
+          .deposit(K1_TOKENS, 2)
         await expect(action)
           .to.emit(incentivesController, 'Deposited')
           .withArgs(user.address, K1_TOKENS, K1_TOKENS.mul(6).mul(15).div(10))
@@ -657,7 +683,7 @@ describe('TokenEmissionsController', function () {
     })
   })
 
-  describe('Withdraw', () => {
+  describe('Withdraw (Proxy)', () => {
     it('Should revert withdrawing different user stake if no withdrawing admin', async () => {
       const { incentivesController, user, user2 } = await loadFixture(
         deployContractFixtureWithUserStakedFor60Days
@@ -667,59 +693,65 @@ describe('TokenEmissionsController', function () {
     })
 
     it('Should revert before lock time', async () => {
-      const { incentivesController, user } = await loadFixture(
+      const { incentivesController, user, stakingToken } = await loadFixture(
         deployContractFixtureWithUserStakedFor60Days
       )
       await ethers.provider.send('evm_setNextBlockTimestamp', [
         (await incentivesController.userLockTime(user.address)).sub(1).toNumber(),
       ])
-      let action = incentivesController.connect(user).withdraw(K1_TOKENS.add(1), user.address)
+      let action = stakingToken.connect(user).withdraw(K1_TOKENS.add(1))
       await expect(action).to.be.revertedWith('Locked')
     })
 
     it('Should revert on amount greater than staked', async () => {
-      const { incentivesController, user } = await loadFixture(
+      const { incentivesController, user, stakingToken } = await loadFixture(
         deployContractFixtureWithUserStakedFor60DaysAfter60Days
       )
-      let action = incentivesController.connect(user).withdraw(K1_TOKENS.add(1), user.address)
+      let action = stakingToken.connect(user).withdraw(K1_TOKENS.add(1))
       await expect(action).to.be.revertedWith('Amount greater than staked')
     })
 
     it('Should transfer correct amount', async () => {
-      const { incentivesController, user, stakingToken } = await loadFixture(
+      const { incentivesController, user, realToken, stakingToken } = await loadFixture(
         deployContractFixtureWithUserStakedFor60DaysAfter60Days
       )
-      let balanceBefore = await stakingToken.balanceOf(user.address)
+      let balanceBefore = await realToken.balanceOf(user.address)
       let controllerBalanceBefore = await stakingToken.balanceOf(incentivesController.address)
-      await incentivesController.connect(user).withdraw(K1_TOKENS.div(2), user.address)
-      expect(await stakingToken.balanceOf(user.address)).to.be.equals(
+      await stakingToken.connect(user).withdraw(K1_TOKENS.div(2))
+      expect(await realToken.balanceOf(user.address)).to.be.eq(
         balanceBefore.add(K1_TOKENS.div(2))
       )
-      expect(await stakingToken.balanceOf(incentivesController.address)).to.be.equals(
+      expect(await realToken.balanceOf(stakingToken.address)).to.be.eq(
+        K1_TOKENS.div(2)
+      )
+      expect(await stakingToken.balanceOf(incentivesController.address)).to.be.eq(
         controllerBalanceBefore.sub(K1_TOKENS.div(2))
+      )
+      expect(await stakingToken.totalSupply()).to.be.eq(
+        K1_TOKENS.div(2)
       )
     })
 
     it('Should transfer correct  triggered by withdrawing admin', async () => {
-      const { incentivesController, user, stakingToken, withdrawingAdmin } = await loadFixture(
+      const { incentivesController, user, stakingToken, realToken } = await loadFixture(
         deployContractFixtureWithUserStakedFor60DaysAfter60Days
       )
       let balanceBefore = await stakingToken.balanceOf(user.address)
-      let admiBbalanceBefore = await stakingToken.balanceOf(withdrawingAdmin.address)
+      let admiBbalanceBefore = await realToken.balanceOf(stakingToken.address)
       let controllerBalanceBefore = await stakingToken.balanceOf(incentivesController.address)
-      await incentivesController.connect(withdrawingAdmin).withdraw(K1_TOKENS.div(2), user.address)
-      expect(await stakingToken.balanceOf(user.address)).to.be.equals(balanceBefore)
-      expect(await stakingToken.balanceOf(withdrawingAdmin.address)).to.be.equals(admiBbalanceBefore.add(K1_TOKENS.div(2)))
-      expect(await stakingToken.balanceOf(incentivesController.address)).to.be.equals(
+      await stakingToken.connect(user).withdraw(K1_TOKENS.div(2))
+      expect(await stakingToken.balanceOf(user.address)).to.be.eq(balanceBefore)
+      expect(await realToken.balanceOf(stakingToken.address)).to.be.eq(admiBbalanceBefore.sub(K1_TOKENS.div(2)))
+      expect(await stakingToken.balanceOf(incentivesController.address)).to.be.eq(
         controllerBalanceBefore.sub(K1_TOKENS.div(2))
       )
     })
 
     it('Should set balances correctly triggered by withdrawing admin', async () => {
-      const { incentivesController, user, withdrawingAdmin } = await loadFixture(
+      const { incentivesController, user, stakingToken } = await loadFixture(
         deployContractFixtureWithUserStakedFor60DaysAfter60Days
       )
-      await incentivesController.connect(withdrawingAdmin).withdraw(K1_TOKENS.div(2), user.address)
+      await stakingToken.connect(user).withdraw(K1_TOKENS.div(2))
       let balance = await incentivesController.balances(user.address)
       expect(balance.boosted).to.be.false
       expect(balance.staked).to.be.eq(K1_TOKENS.div(2))
@@ -732,12 +764,12 @@ describe('TokenEmissionsController', function () {
     })
 
     it('Should set balances correctly withdrawing all', async () => {
-      const { incentivesController, user, stakingToken } = await loadFixture(
+      const { incentivesController, user, stakingToken, realToken } = await loadFixture(
         deployContractFixtureWithUserStakedFor60DaysAfter60Days
       )
-      let balanceBefore = await stakingToken.balanceOf(user.address)
+      let balanceBefore = await realToken.balanceOf(user.address)
       let controllerBalanceBefore = await stakingToken.balanceOf(incentivesController.address)
-      await incentivesController.connect(user).withdraw(K1_TOKENS, user.address)
+      await stakingToken.connect(user).withdraw(K1_TOKENS)
       let balance = await incentivesController.balances(user.address)
       expect(balance.boosted).to.be.false
       expect(balance.staked).to.be.eq(0)
@@ -747,19 +779,19 @@ describe('TokenEmissionsController', function () {
       expect(await incentivesController.totalScaled()).to.be.eq(
         0
       )
-      expect(await stakingToken.balanceOf(user.address)).to.be.equals(
+      expect(await realToken.balanceOf(user.address)).to.be.eq(
         balanceBefore.add(K1_TOKENS)
       )
-      expect(await stakingToken.balanceOf(incentivesController.address)).to.be.equals(
+      expect(await stakingToken.balanceOf(incentivesController.address)).to.be.eq(
         controllerBalanceBefore.sub(K1_TOKENS)
       )
     })
 
     it('Should set balances correctly for 60 days lock', async () => {
-      const { incentivesController, user } = await loadFixture(
+      const { incentivesController, user, stakingToken } = await loadFixture(
         deployContractFixtureWithUserStakedFor60DaysAfter60Days
       )
-      await incentivesController.connect(user).withdraw(K1_TOKENS.div(2), user.address)
+      await stakingToken.connect(user).withdraw(K1_TOKENS.div(2))
       let balance = await incentivesController.balances(user.address)
       expect(balance.boosted).to.be.false
       expect(balance.staked).to.be.eq(K1_TOKENS.div(2))
@@ -772,10 +804,10 @@ describe('TokenEmissionsController', function () {
     })
 
     it('Should set balances correctly for 90 days lock', async () => {
-      const { incentivesController, user } = await loadFixture(
+      const { incentivesController, user, stakingToken } = await loadFixture(
         deployContractFixtureWithUserStakedFor90DaysAfter90Days
       )
-      await incentivesController.connect(user).withdraw(K1_TOKENS.div(2), user.address)
+      await stakingToken.connect(user).withdraw(K1_TOKENS.div(2))
       let balance = await incentivesController.balances(user.address)
       expect(balance.boosted).to.be.false
       expect(balance.staked).to.be.eq(K1_TOKENS.div(2))
@@ -788,10 +820,10 @@ describe('TokenEmissionsController', function () {
     })
 
     it('Should set balances correctly for 120 days lock', async () => {
-      const { incentivesController, user } = await loadFixture(
+      const { incentivesController, user, stakingToken } = await loadFixture(
         deployContractFixtureWithUserStakedFor120DaysAfter120Days
       )
-      await incentivesController.connect(user).withdraw(K1_TOKENS.div(2), user.address)
+      await stakingToken.connect(user).withdraw(K1_TOKENS.div(2))
       let balance = await incentivesController.balances(user.address)
       expect(balance.boosted).to.be.false
       expect(balance.staked).to.be.eq(K1_TOKENS.div(2))
@@ -804,20 +836,20 @@ describe('TokenEmissionsController', function () {
     })
 
     it('Should emit Withdrawn event with _amount == scaled', async () => {
-      const { incentivesController, user } = await loadFixture(
+      const { incentivesController, user, stakingToken } = await loadFixture(
         deployContractFixtureWithUserStakedFor90DaysAfter90Days
       )
-      var action = incentivesController.connect(user).withdraw(K1_TOKENS.div(3), user.address)
+      var action = stakingToken.connect(user).withdraw(K1_TOKENS.div(3))
       await expect(action)
         .to.emit(incentivesController, 'Withdrawn')
         .withArgs(user.address, K1_TOKENS.div(3), K1_TOKENS.div(2).sub(1))
 
-      action = incentivesController.connect(user).withdraw(K1_TOKENS.div(3), user.address)
+      action = stakingToken.connect(user).withdraw(K1_TOKENS.div(3))
       await expect(action)
         .to.emit(incentivesController, 'Withdrawn')
         .withArgs(user.address, K1_TOKENS.div(3), K1_TOKENS.div(2).sub(1))
 
-      action = incentivesController.connect(user).withdraw(K1_TOKENS.div(3), user.address)
+      action = stakingToken.connect(user).withdraw(K1_TOKENS.div(3))
       await expect(action)
         .to.emit(incentivesController, 'Withdrawn')
         .withArgs(user.address, K1_TOKENS.div(3), K1_TOKENS.div(2).sub(1))
@@ -826,41 +858,41 @@ describe('TokenEmissionsController', function () {
     // TODO add all NFT cases
     describe('After staked NFT', async () => {
       it('Should transfer correct amount', async () => {
-        const { incentivesController, user, stakingToken, nftContract } =
+        const { incentivesController, user, stakingToken, nftContract, realToken } =
           await loadFixture(deployContractFixtureWithUserStakedFor60DaysAfter60Days)
         await nftContract.connect(user).approve(incentivesController.address, 0)
         await incentivesController.connect(user).stakeNFT(0)
-        let balanceBefore = await stakingToken.balanceOf(user.address)
-        await incentivesController.connect(user).withdraw(K1_TOKENS.div(2), user.address)
-        expect(await stakingToken.balanceOf(user.address)).to.be.equals(
+        let balanceBefore = await realToken.balanceOf(user.address)
+        await stakingToken.connect(user).withdraw(K1_TOKENS.div(2))
+        expect(await realToken.balanceOf(user.address)).to.be.eq(
           balanceBefore.add(K1_TOKENS.div(2))
         )
       })
 
       it('Should transfer correct triggered by withdrawing admin', async () => {
-        const { incentivesController, user, stakingToken, nftContract, withdrawingAdmin } = await loadFixture(
+        const { incentivesController, user, stakingToken, nftContract, withdrawingAdmin, realToken } = await loadFixture(
           deployContractFixtureWithUserStakedFor60DaysAfter60Days
         )
         let balanceBefore = await stakingToken.balanceOf(user.address)
-        let admiBbalanceBefore = await stakingToken.balanceOf(withdrawingAdmin.address)
+        let admiBbalanceBefore = await realToken.balanceOf(stakingToken.address)
         let controllerBalanceBefore = await stakingToken.balanceOf(incentivesController.address)
         await nftContract.connect(user).approve(incentivesController.address, 0)
         await incentivesController.connect(user).stakeNFT(0)
-        await incentivesController.connect(withdrawingAdmin).withdraw(K1_TOKENS.div(2), user.address)
-        expect(await stakingToken.balanceOf(user.address)).to.be.equals(balanceBefore)
-        expect(await stakingToken.balanceOf(withdrawingAdmin.address)).to.be.equals(admiBbalanceBefore.add(K1_TOKENS.div(2)))
-        expect(await stakingToken.balanceOf(incentivesController.address)).to.be.equals(
+        await stakingToken.connect(user).withdraw(K1_TOKENS.div(2))
+        expect(await stakingToken.balanceOf(user.address)).to.be.eq(balanceBefore)
+        expect(await realToken.balanceOf(stakingToken.address)).to.be.eq(admiBbalanceBefore.sub(K1_TOKENS.div(2)))
+        expect(await stakingToken.balanceOf(incentivesController.address)).to.be.eq(
           controllerBalanceBefore.sub(K1_TOKENS.div(2))
         )
       })
 
       it('Should set balances correctly for 60 days lock', async () => {
-        const { incentivesController, user, nftContract } = await loadFixture(
+        const { incentivesController, user, nftContract, stakingToken } = await loadFixture(
           deployContractFixtureWithUserStakedFor60DaysAfter60Days
         )
         await nftContract.connect(user).approve(incentivesController.address, 0)
         await incentivesController.connect(user).stakeNFT(0)
-        await incentivesController.connect(user).withdraw(K1_TOKENS.div(2), user.address)
+        await stakingToken.connect(user).withdraw(K1_TOKENS.div(2))
         let balance = await incentivesController.balances(user.address)
         expect(balance.boosted).to.be.true
         expect(balance.staked).to.be.eq(K1_TOKENS.div(2))
@@ -873,12 +905,12 @@ describe('TokenEmissionsController', function () {
       })
 
       it('Should set balances correctly for 90 days lock', async () => {
-        const { incentivesController, user, nftContract } = await loadFixture(
+        const { incentivesController, user, nftContract, stakingToken } = await loadFixture(
           deployContractFixtureWithUserStakedFor90DaysAfter90Days
         )
         await nftContract.connect(user).approve(incentivesController.address, 0)
         await incentivesController.connect(user).stakeNFT(0)
-        await incentivesController.connect(user).withdraw(K1_TOKENS.div(2), user.address)
+        await stakingToken.connect(user).withdraw(K1_TOKENS.div(2))
         let balance = await incentivesController.balances(user.address)
         expect(balance.boosted).to.be.true
         expect(balance.staked).to.be.eq(K1_TOKENS.div(2))
@@ -891,12 +923,12 @@ describe('TokenEmissionsController', function () {
       })
 
       it('Should set balances correctly for 120 days lock', async () => {
-        const { incentivesController, user, nftContract } = await loadFixture(
+        const { incentivesController, user, nftContract, stakingToken } = await loadFixture(
           deployContractFixtureWithUserStakedFor120DaysAfter120Days
         )
         await nftContract.connect(user).approve(incentivesController.address, 0)
         await incentivesController.connect(user).stakeNFT(0)
-        await incentivesController.connect(user).withdraw(K1_TOKENS.div(2), user.address)
+        await stakingToken.connect(user).withdraw(K1_TOKENS.div(2))
         let balance = await incentivesController.balances(user.address)
         expect(balance.boosted).to.be.true
         expect(balance.staked).to.be.eq(K1_TOKENS.div(2))
@@ -944,7 +976,7 @@ describe('TokenEmissionsController', function () {
       expect(await nftContract.ownerOf(0)).to.be.eq(user.address)
       await nftContract.connect(user).approve(incentivesController.address, 0)
       await incentivesController.connect(user).stakeNFT(0)
-      expect(await nftContract.balanceOf(user.address)).to.be.equals(
+      expect(await nftContract.balanceOf(user.address)).to.be.eq(
         balanceBefore.sub(1)
       )
       expect(await nftContract.ownerOf(0)).to.be.eq(
@@ -1080,7 +1112,7 @@ describe('TokenEmissionsController', function () {
         incentivesController.address
       )
       await incentivesController.connect(user).unstakeNFT()
-      expect(await nftContract.balanceOf(user.address)).to.be.equals(
+      expect(await nftContract.balanceOf(user.address)).to.be.eq(
         balanceBefore.add(1)
       )
       expect(await nftContract.ownerOf(0)).to.be.eq(user.address)
@@ -1097,7 +1129,7 @@ describe('TokenEmissionsController', function () {
         incentivesController.address
       )
       await incentivesController.connect(user).unstakeNFT()
-      expect(await nftContract.balanceOf(user.address)).to.be.equals(
+      expect(await nftContract.balanceOf(user.address)).to.be.eq(
         balanceBefore.add(1)
       )
       expect(await nftContract.ownerOf(100)).to.be.eq(user.address)
@@ -1213,15 +1245,15 @@ describe('TokenEmissionsController', function () {
       })
 
       it('Should distribute into the void if no one is staked', async () => {
-        const { incentivesController, user2, rewardToken } =
+        const { incentivesController, user2, rewardToken, stakingToken } =
           await loadFixture(deployContractFixtureWithEmissionsStarted)
         var currentTimestmap = await incentivesController.emissionsStart()
         await ethers.provider.send('evm_setNextBlockTimestamp', [
           currentTimestmap.add(BigNumber.from(15).mul('86400')).toNumber(),
         ])
-        await incentivesController
+        await stakingToken
           .connect(user2)
-          .deposit(K1_TOKENS, user2.address, 0)
+          .deposit(K1_TOKENS, 0)
         currentTimestmap = BigNumber.from(
           (await ethers.provider.getBlock('latest')).timestamp
         )
@@ -1273,16 +1305,16 @@ describe('TokenEmissionsController', function () {
       })
 
       it('Should distribute rewards evenly between depositors', async () => {
-        const { incentivesController, user, user2, rewardToken } =
+        const { incentivesController, user, user2, rewardToken, stakingToken } =
           await loadFixture(deployContractFixtureWithUserStakedFor60Days)
         await rewardToken.approve(incentivesController.address, K100_TOKENS)
         var currentTimestmap = await incentivesController.emissionsStart()
         await ethers.provider.send('evm_setNextBlockTimestamp', [
           currentTimestmap.toNumber(),
         ])
-        await incentivesController
+        await stakingToken
           .connect(user2)
-          .deposit(K1_TOKENS, user2.address, 2)
+          .deposit(K1_TOKENS, 2)
         currentTimestmap = BigNumber.from(
           (await ethers.provider.getBlock('latest')).timestamp
         )
@@ -1302,7 +1334,7 @@ describe('TokenEmissionsController', function () {
       })
 
       it('Should distribute correctly when new user deposits during rewards distribution', async () => {
-        const { incentivesController, nftContract, user, user2, rewardToken } =
+        const { incentivesController, nftContract, user, user2, rewardToken, stakingToken } =
           await loadFixture(deployContractFixtureWithUserStakedFor60Days)
         await nftContract.connect(user2).approve(incentivesController.address, 1)
         await incentivesController.connect(user2).stakeNFT(1)
@@ -1312,9 +1344,9 @@ describe('TokenEmissionsController', function () {
         await ethers.provider.send('evm_setNextBlockTimestamp', [
           currentTimestmap.add(BigNumber.from(15).mul('86400')).toNumber(),
         ])
-        await incentivesController
+        await stakingToken
           .connect(user2)
-          .deposit(K1_TOKENS, user2.address, 2)
+          .deposit(K1_TOKENS, 2)
         await ethers.provider.send('evm_setNextBlockTimestamp', [
           currentTimestmap.add(BigNumber.from(150).mul('86400')).toNumber(),
         ])
@@ -1350,7 +1382,7 @@ describe('TokenEmissionsController', function () {
       //   await ethers.provider.send('evm_setNextBlockTimestamp', [
       //     currentTimestmap.add(BigNumber.from(30).mul('86400')).toNumber(),
       //   ])
-      //   await incentivesController.connect(user).withdraw(K1_TOKENS, user.address)
+      //   await stakingToken.connect(user).withdraw(K1_TOKENS, user.address)
       //   await ethers.provider.send('evm_setNextBlockTimestamp', [
       //     currentTimestmap.add(BigNumber.from(45).mul('86400')).toNumber(),
       //   ])
@@ -1590,13 +1622,13 @@ describe('TokenEmissionsController', function () {
       })
 
       it('Should distribute rewards evenly between depositors', async () => {
-        const { incentivesController, user, user2, rewardToken2 } =
+        const { incentivesController, user, user2, rewardToken2, stakingToken } =
           await loadFixture(deployContractFixtureWithUserStakedFor60Days)
         await rewardToken2.approve(incentivesController.address, K100_TOKENS)
         await incentivesController.addReward(rewardToken2.address)
-        await incentivesController
+        await stakingToken
           .connect(user2)
-          .deposit(K1_TOKENS, user2.address, 0)
+          .deposit(K1_TOKENS, 0)
         await incentivesController.notifyReward(
           [rewardToken2.address],
           [K1_TOKENS],
@@ -1621,7 +1653,7 @@ describe('TokenEmissionsController', function () {
       })
 
       it('Should distribute correctly when new user deposits during rewards distribution', async () => {
-        const { incentivesController, user, user2, rewardToken2 } =
+        const { incentivesController, user, user2, rewardToken2, stakingToken } =
           await loadFixture(deployContractFixtureWithUserStakedFor60Days)
         await rewardToken2.approve(incentivesController.address, K100_TOKENS)
         await incentivesController.addReward(rewardToken2.address)
@@ -1636,9 +1668,9 @@ describe('TokenEmissionsController', function () {
         await ethers.provider.send('evm_setNextBlockTimestamp', [
           currentTimestmap.add(BigNumber.from(60).mul('86400')).toNumber(),
         ])
-        await incentivesController
+        await stakingToken
           .connect(user2)
-          .deposit(K1_TOKENS, user2.address, 0)
+          .deposit(K1_TOKENS, 0)
         await ethers.provider.send('evm_setNextBlockTimestamp', [
           currentTimestmap.add(BigNumber.from(180).mul('86400')).toNumber(),
         ])
@@ -1655,7 +1687,7 @@ describe('TokenEmissionsController', function () {
       })
 
       it('Should distribute correctly when new user deposits and old one withdraw', async () => {
-        const { incentivesController, user, user2, rewardToken2 } =
+        const { incentivesController, user, user2, rewardToken2, stakingToken } =
           await loadFixture(deployContractFixtureWithUserStakedFor60Days)
         await rewardToken2.approve(incentivesController.address, K100_TOKENS)
         await incentivesController.addReward(rewardToken2.address)
@@ -1670,14 +1702,14 @@ describe('TokenEmissionsController', function () {
         await ethers.provider.send('evm_setNextBlockTimestamp', [
           currentTimestmap.add(BigNumber.from(60).mul('86400')).toNumber(),
         ])
-        await incentivesController
+        await stakingToken
           .connect(user2)
-          .deposit(K1_TOKENS, user2.address, 0)
+          .deposit(K1_TOKENS, 0)
         expect(await rewardToken2.balanceOf(user.address)).to.be.eq(0)
         await ethers.provider.send('evm_setNextBlockTimestamp', [
           currentTimestmap.add(BigNumber.from(120).mul('86400')).toNumber(),
         ])
-        await incentivesController.connect(user).withdraw(K1_TOKENS, user.address)
+        await stakingToken.connect(user).withdraw(K1_TOKENS)
         await ethers.provider.send('evm_setNextBlockTimestamp', [
           currentTimestmap.add(BigNumber.from(180).mul('86400')).toNumber(),
         ])
@@ -1693,7 +1725,7 @@ describe('TokenEmissionsController', function () {
       })
 
       it('Should distribute correctly when both users have NFTs staked', async () => {
-        const { incentivesController, user, user2, rewardToken2, nftContract } =
+        const { incentivesController, user, user2, rewardToken2, nftContract, stakingToken } =
           await loadFixture(deployContractFixtureWithUserStakedFor60Days)
         await incentivesController.addReward(rewardToken2.address)
         await rewardToken2.approve(incentivesController.address, K100_TOKENS)
@@ -1701,9 +1733,9 @@ describe('TokenEmissionsController', function () {
         await incentivesController.connect(user).stakeNFT(0)
         await nftContract.connect(user2).approve(incentivesController.address, 1)
         await incentivesController.connect(user2).stakeNFT(1)
-        await incentivesController
+        await stakingToken
           .connect(user2)
-          .deposit(K1_TOKENS, user2.address, 0)
+          .deposit(K1_TOKENS, 0)
         await incentivesController.notifyReward(
           [rewardToken2.address],
           [K1_TOKENS],
@@ -1728,7 +1760,7 @@ describe('TokenEmissionsController', function () {
       })
 
       it('Should distribute correctly when both users have NFTs staked and one unstakes NFT', async () => {
-        const { incentivesController, user, user2, rewardToken2, nftContract } =
+        const { incentivesController, user, user2, rewardToken2, nftContract, stakingToken } =
           await loadFixture(deployContractFixtureWithUserStakedFor60Days)
         await rewardToken2.approve(incentivesController.address, K100_TOKENS)
         await incentivesController.addReward(rewardToken2.address)
@@ -1736,9 +1768,9 @@ describe('TokenEmissionsController', function () {
         await incentivesController.connect(user).stakeNFT(0)
         await nftContract.connect(user2).approve(incentivesController.address, 1)
         await incentivesController.connect(user2).stakeNFT(1)
-        await incentivesController
+        await stakingToken
           .connect(user2)
-          .deposit(K1_TOKENS, user2.address, 0)
+          .deposit(K1_TOKENS, 0)
         await incentivesController.notifyReward(
           [rewardToken2.address],
           [K1_TOKENS],
@@ -1773,7 +1805,7 @@ describe('TokenEmissionsController', function () {
       })
 
       it('Should distribute correctly when both users have NFTs staked notifyRewards changes distribution', async () => {
-        const { incentivesController, user, user2, rewardToken2, nftContract } =
+        const { incentivesController, user, user2, rewardToken2, nftContract, stakingToken } =
           await loadFixture(deployContractFixtureWithUserStakedFor60Days)
         await incentivesController.addReward(rewardToken2.address)
         await rewardToken2.approve(incentivesController.address, K100_TOKENS)
@@ -1781,9 +1813,9 @@ describe('TokenEmissionsController', function () {
         await incentivesController.connect(user).stakeNFT(0)
         await nftContract.connect(user2).approve(incentivesController.address, 1)
         await incentivesController.connect(user2).stakeNFT(1)
-        await incentivesController
+        await stakingToken
           .connect(user2)
-          .deposit(K1_TOKENS, user2.address, 0)
+          .deposit(K1_TOKENS, 0)
         await incentivesController.notifyReward(
           [rewardToken2.address],
           [K1_TOKENS],
@@ -1823,7 +1855,7 @@ describe('TokenEmissionsController', function () {
       })
 
       it('Should distribute correctly when notify rewards is called after period', async () => {
-        const { incentivesController, user, user2, rewardToken2, nftContract } =
+        const { incentivesController, user, user2, rewardToken2, nftContract, stakingToken } =
           await loadFixture(deployContractFixtureWithUserStakedFor60Days)
         await incentivesController.addReward(rewardToken2.address)
         await rewardToken2.approve(incentivesController.address, K100_TOKENS)
@@ -1831,9 +1863,9 @@ describe('TokenEmissionsController', function () {
         await incentivesController.connect(user).stakeNFT(0)
         await nftContract.connect(user2).approve(incentivesController.address, 1)
         await incentivesController.connect(user2).stakeNFT(1)
-        await incentivesController
+        await stakingToken
           .connect(user2)
-          .deposit(K1_TOKENS, user2.address, 0)
+          .deposit(K1_TOKENS, 0)
         await incentivesController.notifyReward(
           [rewardToken2.address],
           [K1_TOKENS],
