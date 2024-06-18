@@ -7,7 +7,7 @@ import type { Provider } from "@ethersproject/providers";
 import type {
   IBalancerFactory,
   IBalancerFactoryInterface,
-} from "../../../../../contracts/launchpad/providers/BalancerDexProvider.sol/IBalancerFactory";
+} from "../../../../../contracts/launchpad/interfaces/balancer/IBalancerFactory";
 
 const _abi = [
   {

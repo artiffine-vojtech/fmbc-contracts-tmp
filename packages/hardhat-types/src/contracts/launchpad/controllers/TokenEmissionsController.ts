@@ -57,7 +57,7 @@ export interface TokenEmissionsControllerInterface extends utils.Interface {
     "boosterNFT()": FunctionFragment;
     "claimableRewards(address)": FunctionFragment;
     "currentEmissionsIndex()": FunctionFragment;
-    "deposit(uint256,uint8)": FunctionFragment;
+    "deposit(uint256,address,uint8)": FunctionFragment;
     "emissions(uint256)": FunctionFragment;
     "emissionsStart()": FunctionFragment;
     "getReward(address[])": FunctionFragment;
@@ -141,7 +141,11 @@ export interface TokenEmissionsControllerInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "deposit",
-    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<BigNumberish>]
+    values: [
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "emissions",
@@ -453,6 +457,7 @@ export interface TokenEmissionsController extends BaseContract {
 
     deposit(
       _amount: PromiseOrValue<BigNumberish>,
+      _onBehalfOf: PromiseOrValue<string>,
       _lock: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
@@ -597,6 +602,7 @@ export interface TokenEmissionsController extends BaseContract {
 
   deposit(
     _amount: PromiseOrValue<BigNumberish>,
+    _onBehalfOf: PromiseOrValue<string>,
     _lock: PromiseOrValue<BigNumberish>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
@@ -741,6 +747,7 @@ export interface TokenEmissionsController extends BaseContract {
 
     deposit(
       _amount: PromiseOrValue<BigNumberish>,
+      _onBehalfOf: PromiseOrValue<string>,
       _lock: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<void>;
@@ -929,6 +936,7 @@ export interface TokenEmissionsController extends BaseContract {
 
     deposit(
       _amount: PromiseOrValue<BigNumberish>,
+      _onBehalfOf: PromiseOrValue<string>,
       _lock: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
@@ -1057,6 +1065,7 @@ export interface TokenEmissionsController extends BaseContract {
 
     deposit(
       _amount: PromiseOrValue<BigNumberish>,
+      _onBehalfOf: PromiseOrValue<string>,
       _lock: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;

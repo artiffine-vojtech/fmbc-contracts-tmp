@@ -715,20 +715,20 @@ describe('TokenEmissionsController', function () {
       const { incentivesController, user, realToken, stakingToken } = await loadFixture(
         deployContractFixtureWithUserStakedFor60DaysAfter60Days
       )
-      let balanceBefore = await realToken.balanceOf(user.address)
+      let balanceBefore = await stakingToken.balanceOf(user.address)
       let controllerBalanceBefore = await stakingToken.balanceOf(incentivesController.address)
-      await stakingToken.connect(user).withdraw(K1_TOKENS.div(2))
-      expect(await realToken.balanceOf(user.address)).to.be.eq(
+      await incentivesController.connect(user).withdraw(K1_TOKENS.div(2), user.address)
+      expect(await stakingToken.balanceOf(user.address)).to.be.eq(
         balanceBefore.add(K1_TOKENS.div(2))
       )
       expect(await realToken.balanceOf(stakingToken.address)).to.be.eq(
-        K1_TOKENS.div(2)
+        K1_TOKENS
       )
       expect(await stakingToken.balanceOf(incentivesController.address)).to.be.eq(
         controllerBalanceBefore.sub(K1_TOKENS.div(2))
       )
       expect(await stakingToken.totalSupply()).to.be.eq(
-        K1_TOKENS.div(2)
+        K1_TOKENS
       )
     })
 
@@ -738,10 +738,13 @@ describe('TokenEmissionsController', function () {
       )
       let balanceBefore = await stakingToken.balanceOf(user.address)
       let admiBbalanceBefore = await realToken.balanceOf(stakingToken.address)
+      let admiBbalanceBeforeUSer = await realToken.balanceOf(user.address)
       let controllerBalanceBefore = await stakingToken.balanceOf(incentivesController.address)
       await stakingToken.connect(user).withdraw(K1_TOKENS.div(2))
-      expect(await stakingToken.balanceOf(user.address)).to.be.eq(balanceBefore)
+      expect(await stakingToken.balanceOf(user.address)).to.be.eq(0)
+      expect(balanceBefore).to.be.eq(0)
       expect(await realToken.balanceOf(stakingToken.address)).to.be.eq(admiBbalanceBefore.sub(K1_TOKENS.div(2)))
+      expect(await realToken.balanceOf(user.address)).to.be.eq(admiBbalanceBeforeUSer.add(K1_TOKENS.div(2)))
       expect(await stakingToken.balanceOf(incentivesController.address)).to.be.eq(
         controllerBalanceBefore.sub(K1_TOKENS.div(2))
       )

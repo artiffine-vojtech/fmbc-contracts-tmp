@@ -32,6 +32,11 @@ const _abi = [
   },
   {
     inputs: [],
+    name: "InvalidDexIndex",
+    type: "error",
+  },
+  {
+    inputs: [],
     name: "InvalidHardCap",
     type: "error",
   },
@@ -124,6 +129,51 @@ const _abi = [
     inputs: [],
     name: "XIsAddressZero",
     type: "error",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "factory",
+        type: "address",
+      },
+    ],
+    name: "ControllerFactorySet",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "uint256",
+        name: "index",
+        type: "uint256",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "provider",
+        type: "address",
+      },
+    ],
+    name: "DexProviderAdded",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "ic",
+        type: "address",
+      },
+    ],
+    name: "FomoICSet",
+    type: "event",
   },
   {
     anonymous: false,
@@ -229,6 +279,19 @@ const _abi = [
       },
     ],
     name: "PledgedWithNFT",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "ic",
+        type: "address",
+      },
+    ],
+    name: "SteakICSet",
     type: "event",
   },
 ] as const;

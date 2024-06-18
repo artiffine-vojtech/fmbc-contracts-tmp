@@ -7,7 +7,7 @@ import type { Provider } from "@ethersproject/providers";
 import type {
   IVault,
   IVaultInterface,
-} from "../../../../../contracts/launchpad/providers/BalancerDexProvider.sol/IVault";
+} from "../../../../../contracts/launchpad/interfaces/balancer/IVault";
 
 const _abi = [
   {

@@ -8,7 +8,7 @@ import {
   FomoBullClubNFT__factory,
 } from '../../hardhat-types/src/factories/contracts'
 import { BigNumber, Contract, Signer, constants } from 'ethers'
-import { BalancerDexProvider__factory, ControllerFactory__factory, ERC20, IVault, IdentityVerifier__factory, Launchpad, MEMEVesting, NFTChecker__factory, TokenEmissionsController, TokenIncentivesController, TokenIncentivesController__factory, Launchpad__factory, UniswapV2DexProvider__factory } from '../../hardhat-types/src'
+import { ControllerFactory__factory, ERC20, IVault, IdentityVerifier__factory, Launchpad, MEMEVesting, NFTChecker__factory, TokenEmissionsController, TokenIncentivesController, TokenIncentivesController__factory, Launchpad__factory, UniswapV2DexProvider__factory, BalancerDexProvider__factory } from '../../hardhat-types/src'
 import { HttpNetworkHDAccountsConfig } from 'hardhat/types';
 import { ILaunchCommon } from '../../hardhat-types/src/contracts/launchpad/Launchpad';
 
@@ -38,6 +38,7 @@ const ERROR = {
   LaunchFailed: 'LaunchFailed',
   AlreadyLaunched: 'AlreadyLaunched',
   AlreadyClaimed: 'AlreadyClaimed',
+  InvalidDexIndex: `InvalidDexIndex`,
   ArraysLengthMismatch: 'ArraysLengthMismatch',
   UserIsKOL: 'UserIsKOL',
   UserIsNotKOL: 'UserIsNotKOL',
@@ -178,6 +179,8 @@ describe('Launchpad', function () {
     // Deploy Launhcpad contract
     const launchpadFactory = await env.ethers.getContractFactory("Launchpad", { signer: owner, libraries: { LaunchControl: libInstance.address } }) as Launchpad__factory;
     const launchpad = await launchpadFactory.deploy(
+      "0x9A86980D3625b4A6E69D8a4606D51cbc019e2002",
+      "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
       fomoUsdcLp.address,
       steakController.address,
       fomoController.address,
@@ -562,8 +565,8 @@ describe('Launchpad', function () {
       hardCap: hc,
       team: team,
       x: x,
-      allocations: [BigNumber.from(500), BigNumber.from(500), BigNumber.from(500), BigNumber.from(3525), BigNumber.from(4700), BigNumber.from(0)],
-      rewardsAllocations: [BigNumber.from(3500), BigNumber.from(3500), BigNumber.from(1000), BigNumber.from(1000), BigNumber.from(1000)],
+      allocations: [500, 500, 500, 3525, 4700, 0],
+      rewardsAllocations: [3500, 3500, 1000, 1000, 1000],
       rounds: [BigNumber.from(1 * ONE_DAY), BigNumber.from(7 * ONE_DAY), BigNumber.from(7 * ONE_DAY)],
       dexIndex: 1,
       steakTeamFee: BigNumber.from(2000)
@@ -758,6 +761,15 @@ describe('Launchpad', function () {
       await expect(action).to.be.revertedWith(ERROR.InvalidHardCap)
     })
 
+    it('Should revert if debt index is out of bounds', async () => {
+      const { launchpad, fomoUsdcLp, user3, team, owner } = await loadFixture(deployContractFixture)
+      const config = createLaunchConfig(1e9, 250000, team.address, user3.address)
+      config.dexIndex = 2
+      await fomoUsdcLp.connect(user3).approve(launchpad.address, constants.MaxUint256)
+      const action = launchpad.connect(user3).createLaunch(config, false, await getUserVerificationData(user3.address, owner))
+      await expect(action).to.be.revertedWith(ERROR.InvalidDexIndex)
+    })
+
     it('Should revert if user has too little lpt', async () => {
       const { launchpad, fomoUsdcLp, user3, team, owner } = await loadFixture(deployContractFixture)
       const config = createLaunchConfig(1e9, 250000, team.address, user3.address)
@@ -876,7 +888,7 @@ describe('Launchpad', function () {
       await fomoUsdcLp.connect(user).approve(launchpad.address, constants.MaxUint256)
       await launchpad.connect(user).createLaunch(config, false, await getUserVerificationData(user.address, owner))
       var timestamp = (await ethers.provider.getBlock('latest')).timestamp
-      config.allocations.push(BigNumber.from(0))
+      config.allocations.push(0)
       config.allocations[6] = await launchpad.PLATFORM_MEME_FEE()
       var launch = await getLaunchConfig(launchpad, 0)
       expect(launch.name).to.be.eq(config.name);
@@ -895,6 +907,7 @@ describe('Launchpad', function () {
       expect(launch.raisedLP).to.be.eq(LP_5K);
       expect(launch.raisedLPKOL).to.be.eq(0);
       expect(launch.allocations).to.be.deep.eq(config.allocations);
+      expect(launch.rewardsAllocations).to.be.deep.eq(config.rewardsAllocations);
       expect(launch.rounds).to.be.deep.eq(config.rounds);
       expect(launch.status).to.be.eq(0);
       expect(launch.steakTeamFee).to.be.eq(config.steakTeamFee);
@@ -2394,8 +2407,9 @@ describe('Launchpad', function () {
     it('Should revert if user already claimed', async () => {
       const { launchpad, user } = await loadFixture(deployContractFixtureWithHardCapReached)
       await launchpad.connect(user).launch(0)
-      await launchpad.connect(user).claimTokens(0)
-      const action = launchpad.connect(user).claimTokens(0)
+      const pledgers = await getSigners(7)
+      await launchpad.connect(pledgers[6]).claimTokens(0)
+      const action = launchpad.connect(pledgers[6]).claimTokens(0)
       await expect(action).to.be.revertedWith(ERROR.AlreadyClaimed)
     })
 
@@ -2417,24 +2431,34 @@ describe('Launchpad', function () {
       const launchBefore = await getLaunchConfig(launchpad, 0)
       expect(launchBefore.status).to.be.eq(2)
       await launchpad.launch(0)
-      await launchpad.connect(user2).claimTokens(0)
-      const userPledge = await launchpad.launchToUserPledge(0, user2.address)
-      const launch = await getLaunchConfig(launchpad, 0)
       const alloc = await launchpad.tokenAddresses(0)
       const meme = await env.ethers.getContractAt("ERC20", alloc.token) as ERC20
+      const ownerBalanceBefore = await meme.balanceOf(owner.address)
+      await launchpad.connect(user2).claimTokens(0)
+      const userPledge = await launchpad.launchToUserPledge(0, user2.address)
+      const ownerPledge = await launchpad.launchToUserPledge(0, owner.address)
+      const launch = await getLaunchConfig(launchpad, 0)
       const memeTotalSupply = await meme.totalSupply()
       const userMemeTokensAmount = userPledge.lp.mul(memeTotalSupply).mul(47).div(launch.raisedLP).div(100);
       expect(await meme.balanceOf(user2.address)).to.be.eq(userMemeTokensAmount)
+      for (let i = 5; i < 249; i++) {
+        await launchpad.connect(pledgers[i]).claimTokens(0)
+        expect(await meme.balanceOf(pledgers[i].address)).to.be.eq(userMemeTokensAmount)
+      }
+      await launchpad.connect(owner).claimTokens(0)
+      expect(await meme.balanceOf(owner.address)).to.be.eq(ownerBalanceBefore.add(ownerPledge.lp.mul(memeTotalSupply).mul(47).div(launch.raisedLP).div(100)))
+      expect(await meme.balanceOf(launchpad.address)).to.be.eq(0)
     })
 
-    it('Should set user pledge to claimed', async () => {
+    it('Should set user pledge claimed amunt properly', async () => {
       const { launchpad } = await loadFixture(deployContractFixtureWithHardCapReached)
       await launchpad.launch(0)
       const signers = await getSigners(6)
       const user = signers[5]
       await launchpad.connect(user).claimTokens(0)
+      const launch = await getLaunchConfig(launchpad, 0)
       const userPledge = await launchpad.launchToUserPledge(0, user.address)
-      expect(userPledge.claimed).to.be.eq(true)
+      expect(userPledge.claimed).to.be.eq(userPledge.lp.mul(launch.totalSupply).mul(1e12).mul(1e6).mul(47).div(launch.raisedLP).div(100));
     })
   })
 

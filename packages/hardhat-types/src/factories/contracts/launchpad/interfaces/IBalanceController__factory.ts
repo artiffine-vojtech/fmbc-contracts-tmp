@@ -7,7 +7,7 @@ import type { Provider } from "@ethersproject/providers";
 import type {
   IBalanceController,
   IBalanceControllerInterface,
-} from "../../../../contracts/launchpad/NFTChecker.sol/IBalanceController";
+} from "../../../../contracts/launchpad/interfaces/IBalanceController";
 
 const _abi = [
   {

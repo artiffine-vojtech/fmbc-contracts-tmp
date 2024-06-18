@@ -59,8 +59,8 @@ export declare namespace ILaunchCommon {
     BigNumber,
     string,
     string,
-    BigNumber[],
-    [BigNumber, BigNumber, BigNumber, BigNumber, BigNumber],
+    number[],
+    [number, number, number, number, number],
     [BigNumber, BigNumber, BigNumber],
     BigNumber,
     BigNumber
@@ -71,8 +71,8 @@ export declare namespace ILaunchCommon {
     hardCap: BigNumber;
     team: string;
     x: string;
-    allocations: BigNumber[];
-    rewardsAllocations: [BigNumber, BigNumber, BigNumber, BigNumber, BigNumber];
+    allocations: number[];
+    rewardsAllocations: [number, number, number, number, number];
     rounds: [BigNumber, BigNumber, BigNumber];
     dexIndex: BigNumber;
     steakTeamFee: BigNumber;
@@ -102,8 +102,8 @@ export declare namespace ILaunchCommon {
     string,
     string,
     string,
-    BigNumber[],
-    [BigNumber, BigNumber, BigNumber, BigNumber, BigNumber],
+    number[],
+    [number, number, number, number, number],
     BigNumber[],
     number
   ] & {
@@ -112,8 +112,8 @@ export declare namespace ILaunchCommon {
     dexProvider: string;
     team: string;
     x: string;
-    allocations: BigNumber[];
-    rewardsAllocations: [BigNumber, BigNumber, BigNumber, BigNumber, BigNumber];
+    allocations: number[];
+    rewardsAllocations: [number, number, number, number, number];
     values: BigNumber[];
     status: number;
   };
@@ -127,6 +127,7 @@ export interface LaunchpadInterface extends utils.Interface {
     "PLATFORM_MEME_FEE()": FunctionFragment;
     "PLATFORM_STEAK_FEE()": FunctionFragment;
     "USDC()": FunctionFragment;
+    "USDC_DECIMALS()": FunctionFragment;
     "USDC_KOL_MAX()": FunctionFragment;
     "USDC_KOL_MIN()": FunctionFragment;
     "USDC_MAX()": FunctionFragment;
@@ -134,7 +135,7 @@ export interface LaunchpadInterface extends utils.Interface {
     "USDC_SOFT_CAP()": FunctionFragment;
     "addDexProvider(address)": FunctionFragment;
     "claimTokens(uint256)": FunctionFragment;
-    "createLaunch((string,string,uint256,uint256,address,address,uint256[6],uint256[5],uint256[3],uint256,uint256),bool,bytes)": FunctionFragment;
+    "createLaunch((string,string,uint256,uint256,address,address,uint16[6],uint16[5],uint256[3],uint256,uint256),bool,bytes)": FunctionFragment;
     "dexProviders(uint256)": FunctionFragment;
     "fomoIC()": FunctionFragment;
     "fomoUsdcLp()": FunctionFragment;
@@ -156,12 +157,12 @@ export interface LaunchpadInterface extends utils.Interface {
     "setControllerFactory(address)": FunctionFragment;
     "setFomoIC(address)": FunctionFragment;
     "setKolAddresses(address[],bool[])": FunctionFragment;
-    "setMemePlatformFee(uint256)": FunctionFragment;
+    "setMemePlatformFee(uint16)": FunctionFragment;
     "setPledgeLimits(uint256,uint256)": FunctionFragment;
     "setPledgeLimitsForKOLs(uint256,uint256)": FunctionFragment;
     "setSoftCapAndFees(uint256,uint256)": FunctionFragment;
     "setSteakIC(address)": FunctionFragment;
-    "setSteakPlatformFee(uint256)": FunctionFragment;
+    "setSteakPlatformFee(uint16)": FunctionFragment;
     "steakIC()": FunctionFragment;
     "tokenAddresses(uint256)": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
@@ -175,6 +176,7 @@ export interface LaunchpadInterface extends utils.Interface {
       | "PLATFORM_MEME_FEE"
       | "PLATFORM_STEAK_FEE"
       | "USDC"
+      | "USDC_DECIMALS"
       | "USDC_KOL_MAX"
       | "USDC_KOL_MIN"
       | "USDC_MAX"
@@ -233,6 +235,10 @@ export interface LaunchpadInterface extends utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "USDC", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "USDC_DECIMALS",
+    values?: undefined
+  ): string;
   encodeFunctionData(
     functionFragment: "USDC_KOL_MAX",
     values?: undefined
@@ -400,6 +406,10 @@ export interface LaunchpadInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "USDC", data: BytesLike): Result;
   decodeFunctionResult(
+    functionFragment: "USDC_DECIMALS",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "USDC_KOL_MAX",
     data: BytesLike
   ): Result;
@@ -511,19 +521,57 @@ export interface LaunchpadInterface extends utils.Interface {
   ): Result;
 
   events: {
+    "ControllerFactorySet(address)": EventFragment;
+    "DexProviderAdded(uint256,address)": EventFragment;
+    "FomoICSet(address)": EventFragment;
     "HardCapReached(uint256)": EventFragment;
     "LaunchCreated(string,string,uint256)": EventFragment;
     "OwnershipTransferred(address,address)": EventFragment;
     "Pledged(uint256,address,uint256,uint256)": EventFragment;
     "PledgedWithNFT(uint256,address,uint256,uint256,uint256)": EventFragment;
+    "SteakICSet(address)": EventFragment;
   };
 
+  getEvent(nameOrSignatureOrTopic: "ControllerFactorySet"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "DexProviderAdded"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "FomoICSet"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "HardCapReached"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "LaunchCreated"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Pledged"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "PledgedWithNFT"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "SteakICSet"): EventFragment;
 }
+
+export interface ControllerFactorySetEventObject {
+  factory: string;
+}
+export type ControllerFactorySetEvent = TypedEvent<
+  [string],
+  ControllerFactorySetEventObject
+>;
+
+export type ControllerFactorySetEventFilter =
+  TypedEventFilter<ControllerFactorySetEvent>;
+
+export interface DexProviderAddedEventObject {
+  index: BigNumber;
+  provider: string;
+}
+export type DexProviderAddedEvent = TypedEvent<
+  [BigNumber, string],
+  DexProviderAddedEventObject
+>;
+
+export type DexProviderAddedEventFilter =
+  TypedEventFilter<DexProviderAddedEvent>;
+
+export interface FomoICSetEventObject {
+  ic: string;
+}
+export type FomoICSetEvent = TypedEvent<[string], FomoICSetEventObject>;
+
+export type FomoICSetEventFilter = TypedEventFilter<FomoICSetEvent>;
 
 export interface HardCapReachedEventObject {
   launchId: BigNumber;
@@ -586,6 +634,13 @@ export type PledgedWithNFTEvent = TypedEvent<
 
 export type PledgedWithNFTEventFilter = TypedEventFilter<PledgedWithNFTEvent>;
 
+export interface SteakICSetEventObject {
+  ic: string;
+}
+export type SteakICSetEvent = TypedEvent<[string], SteakICSetEventObject>;
+
+export type SteakICSetEventFilter = TypedEventFilter<SteakICSetEvent>;
+
 export interface Launchpad extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
@@ -619,11 +674,13 @@ export interface Launchpad extends BaseContract {
 
     LAUNCH_FEE(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    PLATFORM_MEME_FEE(overrides?: CallOverrides): Promise<[BigNumber]>;
+    PLATFORM_MEME_FEE(overrides?: CallOverrides): Promise<[number]>;
 
-    PLATFORM_STEAK_FEE(overrides?: CallOverrides): Promise<[BigNumber]>;
+    PLATFORM_STEAK_FEE(overrides?: CallOverrides): Promise<[number]>;
 
     USDC(overrides?: CallOverrides): Promise<[string]>;
+
+    USDC_DECIMALS(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     USDC_KOL_MAX(overrides?: CallOverrides): Promise<[BigNumber]>;
 
@@ -694,10 +751,10 @@ export interface Launchpad extends BaseContract {
       arg1: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<
-      [BigNumber, BigNumber, boolean] & {
+      [BigNumber, BigNumber, BigNumber] & {
         lp: BigNumber;
         usdc: BigNumber;
-        claimed: boolean;
+        claimed: BigNumber;
       }
     >;
 
@@ -706,10 +763,10 @@ export interface Launchpad extends BaseContract {
       arg1: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<
-      [BigNumber, BigNumber, boolean] & {
+      [BigNumber, BigNumber, BigNumber] & {
         lp: BigNumber;
         usdc: BigNumber;
-        claimed: boolean;
+        claimed: BigNumber;
       }
     >;
 
@@ -847,11 +904,13 @@ export interface Launchpad extends BaseContract {
 
   LAUNCH_FEE(overrides?: CallOverrides): Promise<BigNumber>;
 
-  PLATFORM_MEME_FEE(overrides?: CallOverrides): Promise<BigNumber>;
+  PLATFORM_MEME_FEE(overrides?: CallOverrides): Promise<number>;
 
-  PLATFORM_STEAK_FEE(overrides?: CallOverrides): Promise<BigNumber>;
+  PLATFORM_STEAK_FEE(overrides?: CallOverrides): Promise<number>;
 
   USDC(overrides?: CallOverrides): Promise<string>;
+
+  USDC_DECIMALS(overrides?: CallOverrides): Promise<BigNumber>;
 
   USDC_KOL_MAX(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -922,10 +981,10 @@ export interface Launchpad extends BaseContract {
     arg1: PromiseOrValue<BigNumberish>,
     overrides?: CallOverrides
   ): Promise<
-    [BigNumber, BigNumber, boolean] & {
+    [BigNumber, BigNumber, BigNumber] & {
       lp: BigNumber;
       usdc: BigNumber;
-      claimed: boolean;
+      claimed: BigNumber;
     }
   >;
 
@@ -934,10 +993,10 @@ export interface Launchpad extends BaseContract {
     arg1: PromiseOrValue<string>,
     overrides?: CallOverrides
   ): Promise<
-    [BigNumber, BigNumber, boolean] & {
+    [BigNumber, BigNumber, BigNumber] & {
       lp: BigNumber;
       usdc: BigNumber;
-      claimed: boolean;
+      claimed: BigNumber;
     }
   >;
 
@@ -1075,11 +1134,13 @@ export interface Launchpad extends BaseContract {
 
     LAUNCH_FEE(overrides?: CallOverrides): Promise<BigNumber>;
 
-    PLATFORM_MEME_FEE(overrides?: CallOverrides): Promise<BigNumber>;
+    PLATFORM_MEME_FEE(overrides?: CallOverrides): Promise<number>;
 
-    PLATFORM_STEAK_FEE(overrides?: CallOverrides): Promise<BigNumber>;
+    PLATFORM_STEAK_FEE(overrides?: CallOverrides): Promise<number>;
 
     USDC(overrides?: CallOverrides): Promise<string>;
+
+    USDC_DECIMALS(overrides?: CallOverrides): Promise<BigNumber>;
 
     USDC_KOL_MAX(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1150,10 +1211,10 @@ export interface Launchpad extends BaseContract {
       arg1: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<
-      [BigNumber, BigNumber, boolean] & {
+      [BigNumber, BigNumber, BigNumber] & {
         lp: BigNumber;
         usdc: BigNumber;
-        claimed: boolean;
+        claimed: BigNumber;
       }
     >;
 
@@ -1162,10 +1223,10 @@ export interface Launchpad extends BaseContract {
       arg1: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<
-      [BigNumber, BigNumber, boolean] & {
+      [BigNumber, BigNumber, BigNumber] & {
         lp: BigNumber;
         usdc: BigNumber;
-        claimed: boolean;
+        claimed: BigNumber;
       }
     >;
 
@@ -1296,6 +1357,27 @@ export interface Launchpad extends BaseContract {
   };
 
   filters: {
+    "ControllerFactorySet(address)"(
+      factory?: PromiseOrValue<string> | null
+    ): ControllerFactorySetEventFilter;
+    ControllerFactorySet(
+      factory?: PromiseOrValue<string> | null
+    ): ControllerFactorySetEventFilter;
+
+    "DexProviderAdded(uint256,address)"(
+      index?: PromiseOrValue<BigNumberish> | null,
+      provider?: PromiseOrValue<string> | null
+    ): DexProviderAddedEventFilter;
+    DexProviderAdded(
+      index?: PromiseOrValue<BigNumberish> | null,
+      provider?: PromiseOrValue<string> | null
+    ): DexProviderAddedEventFilter;
+
+    "FomoICSet(address)"(
+      ic?: PromiseOrValue<string> | null
+    ): FomoICSetEventFilter;
+    FomoICSet(ic?: PromiseOrValue<string> | null): FomoICSetEventFilter;
+
     "HardCapReached(uint256)"(
       launchId?: PromiseOrValue<BigNumberish> | null
     ): HardCapReachedEventFilter;
@@ -1350,6 +1432,11 @@ export interface Launchpad extends BaseContract {
       amountUsdc?: null,
       nftId?: PromiseOrValue<BigNumberish> | null
     ): PledgedWithNFTEventFilter;
+
+    "SteakICSet(address)"(
+      ic?: PromiseOrValue<string> | null
+    ): SteakICSetEventFilter;
+    SteakICSet(ic?: PromiseOrValue<string> | null): SteakICSetEventFilter;
   };
 
   estimateGas: {
@@ -1364,6 +1451,8 @@ export interface Launchpad extends BaseContract {
     PLATFORM_STEAK_FEE(overrides?: CallOverrides): Promise<BigNumber>;
 
     USDC(overrides?: CallOverrides): Promise<BigNumber>;
+
+    USDC_DECIMALS(overrides?: CallOverrides): Promise<BigNumber>;
 
     USDC_KOL_MAX(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1552,6 +1641,8 @@ export interface Launchpad extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     USDC(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    USDC_DECIMALS(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     USDC_KOL_MAX(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 

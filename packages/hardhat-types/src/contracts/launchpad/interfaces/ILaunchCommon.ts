@@ -22,17 +22,55 @@ export interface ILaunchCommonInterface extends utils.Interface {
   functions: {};
 
   events: {
+    "ControllerFactorySet(address)": EventFragment;
+    "DexProviderAdded(uint256,address)": EventFragment;
+    "FomoICSet(address)": EventFragment;
     "HardCapReached(uint256)": EventFragment;
     "LaunchCreated(string,string,uint256)": EventFragment;
     "Pledged(uint256,address,uint256,uint256)": EventFragment;
     "PledgedWithNFT(uint256,address,uint256,uint256,uint256)": EventFragment;
+    "SteakICSet(address)": EventFragment;
   };
 
+  getEvent(nameOrSignatureOrTopic: "ControllerFactorySet"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "DexProviderAdded"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "FomoICSet"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "HardCapReached"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "LaunchCreated"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Pledged"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "PledgedWithNFT"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "SteakICSet"): EventFragment;
 }
+
+export interface ControllerFactorySetEventObject {
+  factory: string;
+}
+export type ControllerFactorySetEvent = TypedEvent<
+  [string],
+  ControllerFactorySetEventObject
+>;
+
+export type ControllerFactorySetEventFilter =
+  TypedEventFilter<ControllerFactorySetEvent>;
+
+export interface DexProviderAddedEventObject {
+  index: BigNumber;
+  provider: string;
+}
+export type DexProviderAddedEvent = TypedEvent<
+  [BigNumber, string],
+  DexProviderAddedEventObject
+>;
+
+export type DexProviderAddedEventFilter =
+  TypedEventFilter<DexProviderAddedEvent>;
+
+export interface FomoICSetEventObject {
+  ic: string;
+}
+export type FomoICSetEvent = TypedEvent<[string], FomoICSetEventObject>;
+
+export type FomoICSetEventFilter = TypedEventFilter<FomoICSetEvent>;
 
 export interface HardCapReachedEventObject {
   launchId: BigNumber;
@@ -83,6 +121,13 @@ export type PledgedWithNFTEvent = TypedEvent<
 
 export type PledgedWithNFTEventFilter = TypedEventFilter<PledgedWithNFTEvent>;
 
+export interface SteakICSetEventObject {
+  ic: string;
+}
+export type SteakICSetEvent = TypedEvent<[string], SteakICSetEventObject>;
+
+export type SteakICSetEventFilter = TypedEventFilter<SteakICSetEvent>;
+
 export interface ILaunchCommon extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
@@ -114,6 +159,27 @@ export interface ILaunchCommon extends BaseContract {
   callStatic: {};
 
   filters: {
+    "ControllerFactorySet(address)"(
+      factory?: PromiseOrValue<string> | null
+    ): ControllerFactorySetEventFilter;
+    ControllerFactorySet(
+      factory?: PromiseOrValue<string> | null
+    ): ControllerFactorySetEventFilter;
+
+    "DexProviderAdded(uint256,address)"(
+      index?: PromiseOrValue<BigNumberish> | null,
+      provider?: PromiseOrValue<string> | null
+    ): DexProviderAddedEventFilter;
+    DexProviderAdded(
+      index?: PromiseOrValue<BigNumberish> | null,
+      provider?: PromiseOrValue<string> | null
+    ): DexProviderAddedEventFilter;
+
+    "FomoICSet(address)"(
+      ic?: PromiseOrValue<string> | null
+    ): FomoICSetEventFilter;
+    FomoICSet(ic?: PromiseOrValue<string> | null): FomoICSetEventFilter;
+
     "HardCapReached(uint256)"(
       launchId?: PromiseOrValue<BigNumberish> | null
     ): HardCapReachedEventFilter;
@@ -159,6 +225,11 @@ export interface ILaunchCommon extends BaseContract {
       amountUsdc?: null,
       nftId?: PromiseOrValue<BigNumberish> | null
     ): PledgedWithNFTEventFilter;
+
+    "SteakICSet(address)"(
+      ic?: PromiseOrValue<string> | null
+    ): SteakICSetEventFilter;
+    SteakICSet(ic?: PromiseOrValue<string> | null): SteakICSetEventFilter;
   };
 
   estimateGas: {};

@@ -23,8 +23,8 @@ interface ILaunchCommon {
         uint256 lp;
         // Amount of value pledged in USDC
         uint256 usdc;
-        // If user has claimed the pledge
-        bool claimed;
+        // Amount of tokens claimed by user
+        uint256 claimed;
     }
 
     struct LaunchConfigVars {
@@ -48,7 +48,7 @@ interface ILaunchCommon {
          * [4] - Sale
          * [5] - x
          */
-        uint256[6] allocations;
+        uint16[6] allocations;
         /**
          * [0] - USDC/MEME
          * [1] - FOMO/MEME
@@ -56,7 +56,7 @@ interface ILaunchCommon {
          * [3] - STEAK (USDC/FOMO)
          * [4] - FOMO
          */
-        uint256[5] rewardsAllocations;
+        uint16[5] rewardsAllocations;
         /**
          * [0] - KOL Round length
          * [1] - NFT Round length
@@ -89,7 +89,7 @@ interface ILaunchCommon {
          * [5] - x
          * [6] - Platform
          */
-        uint256[7] allocations;
+        uint16[7] allocations;
         /**
          * [0] - USDC/MEME
          * [1] - FOMO/MEME
@@ -97,7 +97,7 @@ interface ILaunchCommon {
          * [3] - STEAK (USDC/FOMO)
          * [4] - FOMO
          */
-        uint256[5] rewardsAllocations;
+        uint16[5] rewardsAllocations;
         /**
          * [0] - KOL Round length
          * [1] - NFT Round length
@@ -169,6 +169,7 @@ interface ILaunchCommon {
     error XIsAddressZero();
     error TeamIsAddressZero();
     error LiquidityAllocationIsZero();
+    error InvalidDexIndex();
 
     event LaunchCreated(string indexed name, string indexed symbol, uint256 indexed launchId);
     event HardCapReached(uint256 indexed launchId);
@@ -180,4 +181,8 @@ interface ILaunchCommon {
         uint256 amountUsdc,
         uint256 indexed nftId
     );
+    event DexProviderAdded(uint256 indexed index, address indexed provider);
+    event ControllerFactorySet(address indexed factory);
+    event SteakICSet(address indexed ic);
+    event FomoICSet(address indexed ic);
 }

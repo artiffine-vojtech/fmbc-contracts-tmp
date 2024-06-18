@@ -4,22 +4,8 @@ pragma solidity 0.8.23;
 
 import '@openzeppelin/contracts/token/ERC721/IERC721.sol';
 import './interfaces/INFTChecker.sol';
+import './interfaces/IBalanceController.sol';
 import '../utils/Adminable.sol';
-
-interface IBalanceController {
-    struct Balances {
-        // Staked tokens of the user.
-        uint staked;
-        // Staked tokens muplitplied by NFT multiplier.
-        uint scaled;
-        // Staked NFT token id.
-        uint nftId;
-        // If position is boosted.
-        bool boosted;
-    }
-
-    function balances(address _account) external view returns (Balances memory);
-}
 
 /**
  * @title NFT Holding or Staking Verifier for FOMO Bull Club Ecosystem

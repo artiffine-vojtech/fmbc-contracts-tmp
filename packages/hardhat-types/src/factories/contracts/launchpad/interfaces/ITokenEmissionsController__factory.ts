@@ -137,6 +137,11 @@ const _abi = [
         type: "uint256",
       },
       {
+        internalType: "address",
+        name: "_onBehalfOf",
+        type: "address",
+      },
+      {
         internalType: "enum ITokenControllerCommons.LockTime",
         name: "_lock",
         type: "uint8",

@@ -16,6 +16,8 @@ import '../MEMEVesting.sol';
 contract ControllerFactory is IControllerFactory {
     using SafeERC20 for IERC20;
 
+    address constant DEAD = 0x000000000000000000000000000000000000dEaD;
+
     /**
      *
      * @inheritdoc IControllerFactory

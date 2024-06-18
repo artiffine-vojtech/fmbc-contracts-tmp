@@ -59,8 +59,8 @@ export declare namespace ILaunchCommon {
     BigNumber,
     string,
     string,
-    BigNumber[],
-    [BigNumber, BigNumber, BigNumber, BigNumber, BigNumber],
+    number[],
+    [number, number, number, number, number],
     [BigNumber, BigNumber, BigNumber],
     BigNumber,
     BigNumber
@@ -71,8 +71,8 @@ export declare namespace ILaunchCommon {
     hardCap: BigNumber;
     team: string;
     x: string;
-    allocations: BigNumber[];
-    rewardsAllocations: [BigNumber, BigNumber, BigNumber, BigNumber, BigNumber];
+    allocations: number[];
+    rewardsAllocations: [number, number, number, number, number];
     rounds: [BigNumber, BigNumber, BigNumber];
     dexIndex: BigNumber;
     steakTeamFee: BigNumber;
@@ -83,7 +83,7 @@ export interface ILaunchpadInterface extends utils.Interface {
   functions: {
     "addDexProvider(address)": FunctionFragment;
     "claimTokens(uint256)": FunctionFragment;
-    "createLaunch((string,string,uint256,uint256,address,address,uint256[6],uint256[5],uint256[3],uint256,uint256),bool,bytes)": FunctionFragment;
+    "createLaunch((string,string,uint256,uint256,address,address,uint16[6],uint16[5],uint256[3],uint256,uint256),bool,bytes)": FunctionFragment;
     "getFundsBack(uint256,bool)": FunctionFragment;
     "launch(uint256)": FunctionFragment;
     "pledge(uint256,uint256,bool,bytes)": FunctionFragment;
@@ -91,12 +91,12 @@ export interface ILaunchpadInterface extends utils.Interface {
     "setControllerFactory(address)": FunctionFragment;
     "setFomoIC(address)": FunctionFragment;
     "setKolAddresses(address[],bool[])": FunctionFragment;
-    "setMemePlatformFee(uint256)": FunctionFragment;
+    "setMemePlatformFee(uint16)": FunctionFragment;
     "setPledgeLimits(uint256,uint256)": FunctionFragment;
     "setPledgeLimitsForKOLs(uint256,uint256)": FunctionFragment;
     "setSoftCapAndFees(uint256,uint256)": FunctionFragment;
     "setSteakIC(address)": FunctionFragment;
-    "setSteakPlatformFee(uint256)": FunctionFragment;
+    "setSteakPlatformFee(uint16)": FunctionFragment;
   };
 
   getFunction(
@@ -254,17 +254,55 @@ export interface ILaunchpadInterface extends utils.Interface {
   ): Result;
 
   events: {
+    "ControllerFactorySet(address)": EventFragment;
+    "DexProviderAdded(uint256,address)": EventFragment;
+    "FomoICSet(address)": EventFragment;
     "HardCapReached(uint256)": EventFragment;
     "LaunchCreated(string,string,uint256)": EventFragment;
     "Pledged(uint256,address,uint256,uint256)": EventFragment;
     "PledgedWithNFT(uint256,address,uint256,uint256,uint256)": EventFragment;
+    "SteakICSet(address)": EventFragment;
   };
 
+  getEvent(nameOrSignatureOrTopic: "ControllerFactorySet"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "DexProviderAdded"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "FomoICSet"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "HardCapReached"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "LaunchCreated"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Pledged"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "PledgedWithNFT"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "SteakICSet"): EventFragment;
 }
+
+export interface ControllerFactorySetEventObject {
+  factory: string;
+}
+export type ControllerFactorySetEvent = TypedEvent<
+  [string],
+  ControllerFactorySetEventObject
+>;
+
+export type ControllerFactorySetEventFilter =
+  TypedEventFilter<ControllerFactorySetEvent>;
+
+export interface DexProviderAddedEventObject {
+  index: BigNumber;
+  provider: string;
+}
+export type DexProviderAddedEvent = TypedEvent<
+  [BigNumber, string],
+  DexProviderAddedEventObject
+>;
+
+export type DexProviderAddedEventFilter =
+  TypedEventFilter<DexProviderAddedEvent>;
+
+export interface FomoICSetEventObject {
+  ic: string;
+}
+export type FomoICSetEvent = TypedEvent<[string], FomoICSetEventObject>;
+
+export type FomoICSetEventFilter = TypedEventFilter<FomoICSetEvent>;
 
 export interface HardCapReachedEventObject {
   launchId: BigNumber;
@@ -314,6 +352,13 @@ export type PledgedWithNFTEvent = TypedEvent<
 >;
 
 export type PledgedWithNFTEventFilter = TypedEventFilter<PledgedWithNFTEvent>;
+
+export interface SteakICSetEventObject {
+  ic: string;
+}
+export type SteakICSetEvent = TypedEvent<[string], SteakICSetEventObject>;
+
+export type SteakICSetEventFilter = TypedEventFilter<SteakICSetEvent>;
 
 export interface ILaunchpad extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
@@ -631,6 +676,27 @@ export interface ILaunchpad extends BaseContract {
   };
 
   filters: {
+    "ControllerFactorySet(address)"(
+      factory?: PromiseOrValue<string> | null
+    ): ControllerFactorySetEventFilter;
+    ControllerFactorySet(
+      factory?: PromiseOrValue<string> | null
+    ): ControllerFactorySetEventFilter;
+
+    "DexProviderAdded(uint256,address)"(
+      index?: PromiseOrValue<BigNumberish> | null,
+      provider?: PromiseOrValue<string> | null
+    ): DexProviderAddedEventFilter;
+    DexProviderAdded(
+      index?: PromiseOrValue<BigNumberish> | null,
+      provider?: PromiseOrValue<string> | null
+    ): DexProviderAddedEventFilter;
+
+    "FomoICSet(address)"(
+      ic?: PromiseOrValue<string> | null
+    ): FomoICSetEventFilter;
+    FomoICSet(ic?: PromiseOrValue<string> | null): FomoICSetEventFilter;
+
     "HardCapReached(uint256)"(
       launchId?: PromiseOrValue<BigNumberish> | null
     ): HardCapReachedEventFilter;
@@ -676,6 +742,11 @@ export interface ILaunchpad extends BaseContract {
       amountUsdc?: null,
       nftId?: PromiseOrValue<BigNumberish> | null
     ): PledgedWithNFTEventFilter;
+
+    "SteakICSet(address)"(
+      ic?: PromiseOrValue<string> | null
+    ): SteakICSetEventFilter;
+    SteakICSet(ic?: PromiseOrValue<string> | null): SteakICSetEventFilter;
   };
 
   estimateGas: {

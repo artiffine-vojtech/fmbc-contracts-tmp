@@ -4,6 +4,7 @@ pragma solidity 0.8.23;
 
 import '@openzeppelin/contracts/access/Ownable.sol';
 import '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
+import '@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol';
 import '@uniswap/v2-core/contracts/interfaces/IUniswapV2Factory.sol';
 import '@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol';
 import '../interfaces/INFTWithLevel.sol';
@@ -21,8 +22,9 @@ import './libraries/LaunchControl.sol';
 contract Launchpad is ILaunchpad, Ownable {
     using SafeERC20 for IERC20;
 
-    address public constant FOMO = 0x9A86980D3625b4A6E69D8a4606D51cbc019e2002;
-    address public constant USDC = 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913;
+    address public immutable FOMO;
+    address public immutable USDC;
+    uint256 public immutable USDC_DECIMALS;
 
     /// @notice Soft cap value of all pledges in USDC
     uint256 public USDC_SOFT_CAP = 100_000 * 1e6;
@@ -37,9 +39,9 @@ contract Launchpad is ILaunchpad, Ownable {
     /// @notice Maximum pledge value in USDC for KOLs
     uint256 public USDC_KOL_MAX = 5_000 * 1e6;
     /// @notice Fee taken by the contract owner in Steak LP tokens
-    uint256 public PLATFORM_STEAK_FEE = 500;
+    uint16 public PLATFORM_STEAK_FEE = 500;
     /// @notice Fee taken by the contract owner in MEME tokens
-    uint256 public PLATFORM_MEME_FEE = 275;
+    uint16 public PLATFORM_MEME_FEE = 275;
     /// @notice Helper contract to create token controllers
     address public CONTROLLER_FACTORY;
 
@@ -78,6 +80,8 @@ contract Launchpad is ILaunchpad, Ownable {
     mapping(uint256 => mapping(uint256 => Pledge)) public launchToNFTPledge;
 
     constructor(
+        address _fomo,
+        address _usdc,
         address _fomoUsdcLp,
         address _steakIC,
         address _fomoIC,
@@ -87,6 +91,9 @@ contract Launchpad is ILaunchpad, Ownable {
         address _identityVerifier,
         address _dexProvider
     ) {
+        FOMO = _fomo;
+        USDC = _usdc;
+        USDC_DECIMALS = 10 ** IERC20Metadata(_usdc).decimals();
         fomoUsdcLp = IERC20(_fomoUsdcLp);
         steakIC = ITokenIncentivesController(_steakIC);
         fomoIC = ITokenControllerCommons(_fomoIC);
@@ -114,8 +121,9 @@ contract Launchpad is ILaunchpad, Ownable {
         if (_config.team == address(0)) revert TeamIsAddressZero();
         if (_config.steakTeamFee >= DEN - PLATFORM_STEAK_FEE) revert InvalidSteakTeamFee();
         if (_config.totalSupply == 0) revert InvalidTotalSupply();
-        if (_config.hardCap * 1e6 <= USDC_SOFT_CAP) revert InvalidHardCap();
+        if (_config.hardCap * USDC_DECIMALS <= USDC_SOFT_CAP) revert InvalidHardCap();
         if (_config.rounds[0] == 0 || _config.rounds[1] == 0 || _config.rounds[2] == 0) revert InvalidRounds();
+        if (_config.dexIndex >= dexProviders.length) revert InvalidDexIndex();
         if (
             _config.allocations[0] +
                 _config.allocations[1] +
@@ -187,7 +195,7 @@ contract Launchpad is ILaunchpad, Ownable {
                     _config.rounds[2],
                     _config.totalSupply,
                     USDC_SOFT_CAP,
-                    _config.hardCap * 1e6,
+                    _config.hardCap * USDC_DECIMALS,
                     USDC_MIN,
                     USDC_MAX,
                     block.timestamp,
@@ -296,7 +304,7 @@ contract Launchpad is ILaunchpad, Ownable {
                 Pledge storage kolPledge = launchToUserPledge[_launchId][kolAddresses[i]];
                 uint256 kolMemeAmount = (kolPledge.lp * kolAllocationInMEME) / launchConfig.values[10];
                 if (kolMemeAmount > 0) {
-                    IVesting(addrs.vesting).vestTokens(kolMemeAmount, kolAddresses[i]);
+                    IMEMEVesting(addrs.vesting).vestTokens(kolMemeAmount, kolAddresses[i]);
                 }
             }
         } else {
@@ -313,16 +321,28 @@ contract Launchpad is ILaunchpad, Ownable {
         if (launchConfig.status != LaunchStatus.LAUNCHED) revert LaunchIsNotLaunched();
         TokenAddressess storage addrs = tokenAddresses[_launchId];
         Pledge storage userPledge = launchToUserPledge[_launchId][msg.sender];
-        if (userPledge.claimed) revert AlreadyClaimed();
 
         // User allocation % multiplied by % of total sale allocation
-        uint256 tokenAlloc = ((IERC20(addrs.token).totalSupply() * launchConfig.allocations[4] * userPledge.lp) /
+        uint256 tokenAlloc = ((launchConfig.values[3] * 1e18 * launchConfig.allocations[4] * userPledge.lp) /
             launchConfig.values[9]) / DEN;
-        if (IERC20(addrs.token).balanceOf(address(this)) <= tokenAlloc) {
-            tokenAlloc = IERC20(addrs.token).balanceOf(address(this));
+
+        // Check if user already claimed
+        if (userPledge.claimed >= tokenAlloc) revert AlreadyClaimed();
+
+        // subtract already claimed tokens
+        tokenAlloc -= userPledge.claimed;
+
+        // Check if contract has enough tokens to send
+        uint256 launchpadBalance = IERC20(addrs.token).balanceOf(address(this));
+        if (launchpadBalance < tokenAlloc) {
+            tokenAlloc = launchpadBalance;
         }
+
+        // Update user claimed amount
+        userPledge.claimed += tokenAlloc;
+
+        // Transfer tokens
         IERC20(addrs.token).safeTransfer(msg.sender, tokenAlloc);
-        userPledge.claimed = true;
     }
 
     /***** VIEW *****/
@@ -344,7 +364,7 @@ contract Launchpad is ILaunchpad, Ownable {
                 if (_isKol[i]) {
                     kolAddresses.push(_kolAddresses[i]);
                 } else {
-                    for (uint256 j = 0; j < _kolAddresses.length; j++) {
+                    for (uint256 j = 0; j < kolAddresses.length; j++) {
                         if (kolAddresses[j] == _kolAddresses[i]) {
                             kolAddresses[j] = kolAddresses[kolAddresses.length - 1];
                             kolAddresses.pop();
@@ -360,31 +380,31 @@ contract Launchpad is ILaunchpad, Ownable {
      * @inheritdoc ILaunchpad
      */
     function setSoftCapAndFees(uint256 _softCap, uint256 _launchFee) external onlyOwner {
-        if (_softCap > 0) USDC_SOFT_CAP = _softCap * 1e6;
+        if (_softCap > 0) USDC_SOFT_CAP = _softCap * USDC_DECIMALS;
         require(_launchFee < USDC_SOFT_CAP);
-        LAUNCH_FEE = _launchFee * 1e6;
+        LAUNCH_FEE = _launchFee * USDC_DECIMALS;
     }
 
     /**
      * @inheritdoc ILaunchpad
      */
     function setPledgeLimits(uint256 _min, uint256 _max) external onlyOwner {
-        if (_min > 0) USDC_MIN = _min * 1e6;
-        if (_max > 0) USDC_MAX = _max * 1e6;
+        if (_min > 0) USDC_MIN = _min * USDC_DECIMALS;
+        if (_max > 0) USDC_MAX = _max * USDC_DECIMALS;
     }
 
     /**
      * @inheritdoc ILaunchpad
      */
     function setPledgeLimitsForKOLs(uint256 _min, uint256 _max) external onlyOwner {
-        if (_min > 0) USDC_KOL_MIN = _min * 1e6;
-        if (_max > 0) USDC_KOL_MAX = _max * 1e6;
+        if (_min > 0) USDC_KOL_MIN = _min * USDC_DECIMALS;
+        if (_max > 0) USDC_KOL_MAX = _max * USDC_DECIMALS;
     }
 
     /**
      * @inheritdoc ILaunchpad
      */
-    function setSteakPlatformFee(uint256 _fee) external onlyOwner {
+    function setSteakPlatformFee(uint16 _fee) external onlyOwner {
         require(_fee <= 2000); // 20%
         PLATFORM_STEAK_FEE = _fee;
     }
@@ -392,7 +412,7 @@ contract Launchpad is ILaunchpad, Ownable {
     /**
      * @inheritdoc ILaunchpad
      */
-    function setMemePlatformFee(uint256 _fee) external onlyOwner {
+    function setMemePlatformFee(uint16 _fee) external onlyOwner {
         require(_fee <= 2000); // 20%
         PLATFORM_MEME_FEE = _fee;
     }
@@ -402,6 +422,7 @@ contract Launchpad is ILaunchpad, Ownable {
      */
     function setControllerFactory(address _controllerFactory) external onlyOwner {
         CONTROLLER_FACTORY = _controllerFactory;
+        emit ControllerFactorySet(_controllerFactory);
     }
 
     /**
@@ -409,6 +430,7 @@ contract Launchpad is ILaunchpad, Ownable {
      */
     function setSteakIC(address _steakIC) external onlyOwner {
         steakIC = ITokenIncentivesController(_steakIC);
+        emit SteakICSet(_steakIC);
     }
 
     /**
@@ -416,6 +438,7 @@ contract Launchpad is ILaunchpad, Ownable {
      */
     function setFomoIC(address _fomoIC) external onlyOwner {
         fomoIC = ITokenControllerCommons(_fomoIC);
+        emit FomoICSet(_fomoIC);
     }
 
     /**
@@ -424,6 +447,7 @@ contract Launchpad is ILaunchpad, Ownable {
     function addDexProvider(address _dexProvider) external onlyOwner {
         require(_dexProvider != address(0));
         dexProviders.push(IDexProvider(_dexProvider));
+        emit DexProviderAdded(dexProviders.length - 1, _dexProvider);
     }
 
     /***** INTERNAL *****/

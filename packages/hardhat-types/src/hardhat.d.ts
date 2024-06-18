@@ -337,10 +337,6 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ITeamVesting__factory>;
     getContractFactory(
-      name: "ITokenWithLevel",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.ITokenWithLevel__factory>;
-    getContractFactory(
       name: "IVesting",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IVesting__factory>;
@@ -368,6 +364,22 @@ declare module "hardhat/types/runtime" {
       name: "IdentityVerifier",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IdentityVerifier__factory>;
+    getContractFactory(
+      name: "IBalancerFactory",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IBalancerFactory__factory>;
+    getContractFactory(
+      name: "IVault",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IVault__factory>;
+    getContractFactory(
+      name: "IWeightedPool",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IWeightedPool__factory>;
+    getContractFactory(
+      name: "IBalanceController",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IBalanceController__factory>;
     getContractFactory(
       name: "IControllerFactory",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -417,21 +429,13 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.Launchpad__factory>;
     getContractFactory(
-      name: "ITokenIncentivesController",
+      name: "LaunchControl",
       signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.ITokenIncentivesController__factory>;
-    getContractFactory(
-      name: "IVesting",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.IVesting__factory>;
+    ): Promise<Contracts.LaunchControl__factory>;
     getContractFactory(
       name: "MEMEVesting",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.MEMEVesting__factory>;
-    getContractFactory(
-      name: "IBalanceController",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.IBalanceController__factory>;
     getContractFactory(
       name: "NFTChecker",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -440,18 +444,6 @@ declare module "hardhat/types/runtime" {
       name: "BalancerDexProvider",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.BalancerDexProvider__factory>;
-    getContractFactory(
-      name: "IBalancerFactory",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.IBalancerFactory__factory>;
-    getContractFactory(
-      name: "IVault",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.IVault__factory>;
-    getContractFactory(
-      name: "IWeightedPool",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.IWeightedPool__factory>;
     getContractFactory(
       name: "UniswapV2DexProvider",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -887,11 +879,6 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.ITeamVesting>;
     getContractAt(
-      name: "ITokenWithLevel",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.ITokenWithLevel>;
-    getContractAt(
       name: "IVesting",
       address: string,
       signer?: ethers.Signer
@@ -926,6 +913,26 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.IdentityVerifier>;
+    getContractAt(
+      name: "IBalancerFactory",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IBalancerFactory>;
+    getContractAt(
+      name: "IVault",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IVault>;
+    getContractAt(
+      name: "IWeightedPool",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IWeightedPool>;
+    getContractAt(
+      name: "IBalanceController",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IBalanceController>;
     getContractAt(
       name: "IControllerFactory",
       address: string,
@@ -987,25 +994,15 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.Launchpad>;
     getContractAt(
-      name: "ITokenIncentivesController",
+      name: "LaunchControl",
       address: string,
       signer?: ethers.Signer
-    ): Promise<Contracts.ITokenIncentivesController>;
-    getContractAt(
-      name: "IVesting",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.IVesting>;
+    ): Promise<Contracts.LaunchControl>;
     getContractAt(
       name: "MEMEVesting",
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.MEMEVesting>;
-    getContractAt(
-      name: "IBalanceController",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.IBalanceController>;
     getContractAt(
       name: "NFTChecker",
       address: string,
@@ -1016,21 +1013,6 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.BalancerDexProvider>;
-    getContractAt(
-      name: "IBalancerFactory",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.IBalancerFactory>;
-    getContractAt(
-      name: "IVault",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.IVault>;
-    getContractAt(
-      name: "IWeightedPool",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.IWeightedPool>;
     getContractAt(
       name: "UniswapV2DexProvider",
       address: string,

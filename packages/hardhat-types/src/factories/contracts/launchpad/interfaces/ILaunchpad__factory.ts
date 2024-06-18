@@ -32,6 +32,11 @@ const _abi = [
   },
   {
     inputs: [],
+    name: "InvalidDexIndex",
+    type: "error",
+  },
+  {
+    inputs: [],
     name: "InvalidHardCap",
     type: "error",
   },
@@ -124,6 +129,51 @@ const _abi = [
     inputs: [],
     name: "XIsAddressZero",
     type: "error",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "factory",
+        type: "address",
+      },
+    ],
+    name: "ControllerFactorySet",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "uint256",
+        name: "index",
+        type: "uint256",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "provider",
+        type: "address",
+      },
+    ],
+    name: "DexProviderAdded",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "ic",
+        type: "address",
+      },
+    ],
+    name: "FomoICSet",
+    type: "event",
   },
   {
     anonymous: false,
@@ -232,6 +282,19 @@ const _abi = [
     type: "event",
   },
   {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "ic",
+        type: "address",
+      },
+    ],
+    name: "SteakICSet",
+    type: "event",
+  },
+  {
     inputs: [
       {
         internalType: "address",
@@ -292,14 +355,14 @@ const _abi = [
             type: "address",
           },
           {
-            internalType: "uint256[6]",
+            internalType: "uint16[6]",
             name: "allocations",
-            type: "uint256[6]",
+            type: "uint16[6]",
           },
           {
-            internalType: "uint256[5]",
+            internalType: "uint16[5]",
             name: "rewardsAllocations",
-            type: "uint256[5]",
+            type: "uint16[5]",
           },
           {
             internalType: "uint256[3]",
@@ -481,9 +544,9 @@ const _abi = [
   {
     inputs: [
       {
-        internalType: "uint256",
+        internalType: "uint16",
         name: "_fee",
-        type: "uint256",
+        type: "uint16",
       },
     ],
     name: "setMemePlatformFee",
@@ -561,9 +624,9 @@ const _abi = [
   {
     inputs: [
       {
-        internalType: "uint256",
+        internalType: "uint16",
         name: "_fee",
-        type: "uint256",
+        type: "uint16",
       },
     ],
     name: "setSteakPlatformFee",

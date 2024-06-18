@@ -113,14 +113,14 @@ interface ILaunchpad is ILaunchCommon {
      * @dev onlyOwner
      * @param _fee The platform fee amount
      */
-    function setSteakPlatformFee(uint256 _fee) external;
+    function setSteakPlatformFee(uint16 _fee) external;
 
     /**
      * @notice Set the platform fee for MEME token
      * @dev onlyOwner
      * @param _fee The platform fee amount
      */
-    function setMemePlatformFee(uint256 _fee) external;
+    function setMemePlatformFee(uint16 _fee) external;
 
     /**
      * @notice Set the controller factory address

@@ -7,20 +7,19 @@ import '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 import './../interfaces/ILaunchCommon.sol';
 import '../../utils/Adminable.sol';
 import '../interfaces/IControllerFactory.sol';
+import '../interfaces/IMEMEVesting.sol';
 import '../interfaces/IDexProvider.sol';
 import '../interfaces/ITokenEmissionsController.sol';
 import '../interfaces/ITokenIncentivesController.sol';
 import '../ERC20MEME.sol';
 import '../../utils/Adminable.sol';
 
-interface IVesting {
-    function vestTokens(uint256 _amount, address _beneficiary) external;
-}
-
 /// @title LaunchControl
 /// @notice Library to perform token launch.
 library LaunchControl {
     using SafeERC20 for IERC20;
+
+    address public constant DEAD = 0x000000000000000000000000000000000000dEaD;
 
     uint256 private constant DEN = 1e4;
 
@@ -125,7 +124,7 @@ library LaunchControl {
         uint256 teamMemeAlloc = (meme.totalSupply() * _launchConfig.allocations[0]) / DEN;
         if (teamMemeAlloc > 0) {
             IERC20(address(meme)).safeApprove(_addrs.vesting, teamMemeAlloc);
-            IVesting(_addrs.vesting).vestTokens(teamMemeAlloc, _launchConfig.team);
+            IMEMEVesting(_addrs.vesting).vestTokens(teamMemeAlloc, _launchConfig.team);
         }
 
         // Send % MEME to the X address if set
@@ -187,7 +186,7 @@ library LaunchControl {
             // % FOMO is burned
             uint256 platformFeePercent = (_launchConfig.values[12] * DEN) / (DEN - _launchConfig.values[11]);
             uint256 fomoToBurn = (fomoAmount * platformFeePercent) / DEN;
-            IERC20(_vars.fomo).safeTransfer(0x000000000000000000000000000000000000dEaD, fomoToBurn);
+            IERC20(_vars.fomo).safeTransfer(DEAD, fomoToBurn);
             // % USDC is sent to protocol
             uint256 usdcForTeam = (usdcAmount * platformFeePercent) / DEN;
             IERC20(_vars.usdc).safeTransfer(_vars.owner, usdcForTeam);
@@ -222,14 +221,8 @@ library LaunchControl {
         _addrs.fomoLP = IDexProvider(_vars.dexProvider).createLP(_vars.fomo, address(_meme), _addrs.fomo, _liquidityAlloc / 2);
 
         // Transfer LP tokens to dead address
-        IERC20(_addrs.usdcLP).safeTransfer(
-            0x000000000000000000000000000000000000dEaD,
-            IERC20(_addrs.usdcLP).balanceOf(address(this))
-        );
-        IERC20(_addrs.fomoLP).safeTransfer(
-            0x000000000000000000000000000000000000dEaD,
-            IERC20(_addrs.fomoLP).balanceOf(address(this))
-        );
+        IERC20(_addrs.usdcLP).safeTransfer(DEAD, IERC20(_addrs.usdcLP).balanceOf(address(this)));
+        IERC20(_addrs.fomoLP).safeTransfer(DEAD, IERC20(_addrs.fomoLP).balanceOf(address(this)));
     }
 
     /**

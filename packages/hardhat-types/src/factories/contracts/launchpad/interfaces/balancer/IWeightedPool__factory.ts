@@ -7,7 +7,7 @@ import type { Provider } from "@ethersproject/providers";
 import type {
   IWeightedPool,
   IWeightedPoolInterface,
-} from "../../../../../contracts/launchpad/providers/BalancerDexProvider.sol/IWeightedPool";
+} from "../../../../../contracts/launchpad/interfaces/balancer/IWeightedPool";
 
 const _abi = [
   {
