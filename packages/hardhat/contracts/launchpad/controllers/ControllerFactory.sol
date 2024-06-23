@@ -34,14 +34,14 @@ contract ControllerFactory is IControllerFactory {
             IERC20(_usdcLP),
             INFTWithLevel(_memberNFT),
             _token,
-            0x000000000000000000000000000000000000dEaD
+            DEAD
         );
 
         TokenEmissionsController fomoLPController = new TokenEmissionsController(
             IERC20(_fomoLP),
             INFTWithLevel(_memberNFT),
             _token,
-            0x000000000000000000000000000000000000dEaD
+            DEAD
         );
 
         TokenProxy tokenProxy = new TokenProxy(

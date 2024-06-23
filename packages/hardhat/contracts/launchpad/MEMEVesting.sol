@@ -98,9 +98,8 @@ contract MEMEVesting is IMEMEVesting, Ownable {
         if (vestingPosition.cancelled) return 0;
         uint256 timeSinceStart = _timestamp - vestingPosition.startTimestamp;
         uint256 numberOfUnlocks = timeSinceStart / 30 days;
-        uint256 amountUnlocked = numberOfUnlocks >= NO_MONTHLY_UNLOCKS
-            ? vestingPosition.amount
-            : (vestingPosition.amount * (UNLOCKED_AT_TGE + (numberOfUnlocks * UNLOCKED_MONTHLY))) / PRECISION;
+        uint256 amountUnlocked = (vestingPosition.amount * (UNLOCKED_AT_TGE + (numberOfUnlocks * UNLOCKED_MONTHLY))) / PRECISION;
+        if (amountUnlocked > vestingPosition.amount) amountUnlocked = vestingPosition.amount;
         uint256 amountToClaim = amountUnlocked - vestingPosition.amountClaimed;
         return amountToClaim;
     }

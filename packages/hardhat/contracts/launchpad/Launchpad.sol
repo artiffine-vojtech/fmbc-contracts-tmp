@@ -323,8 +323,10 @@ contract Launchpad is ILaunchpad, Ownable {
         Pledge storage userPledge = launchToUserPledge[_launchId][msg.sender];
 
         // User allocation % multiplied by % of total sale allocation
-        uint256 tokenAlloc = ((launchConfig.values[3] * 1e18 * launchConfig.allocations[4] * userPledge.lp) /
-            launchConfig.values[9]) / DEN;
+        uint256 tokenAlloc = ((launchConfig.values[3] *
+            (10 ** IERC20Metadata(addrs.token).decimals()) *
+            launchConfig.allocations[4] *
+            userPledge.lp) / launchConfig.values[9]) / DEN;
 
         // Check if user already claimed
         if (userPledge.claimed >= tokenAlloc) revert AlreadyClaimed();
