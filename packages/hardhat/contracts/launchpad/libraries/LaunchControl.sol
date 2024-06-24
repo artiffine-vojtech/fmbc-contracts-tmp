@@ -64,6 +64,8 @@ library LaunchControl {
         // Set launch status
         _launchConfig.status = ILaunchCommon.LaunchStatus.LAUNCHED;
 
+        _tryToBreakLP(_launchConfig, _addrs, _vars);
+
         // Crate MEME token
         ERC20 meme = new ERC20MEME(_launchConfig.name, _launchConfig.symbol, _launchConfig.values[3]);
         _addrs.token = address(meme);
@@ -141,7 +143,6 @@ library LaunchControl {
     /**
      * @notice Check Launch criteria and break and distribute pledged Steak LP if succesfull.
      * @param _launchConfig Launch configuration
-     * @param _addrs Token addresses
      * @param _vars Variables
      * @return totalUsdc Total USDC in the Steak LP pair
      * @return totalLP Total Steak LP tokens
@@ -150,7 +151,6 @@ library LaunchControl {
      */
     function tryToEndLaunch(
         ILaunchCommon.LaunchConfig storage _launchConfig,
-        ILaunchCommon.TokenAddressess storage _addrs,
         Vars memory _vars
     ) external returns (uint256 totalUsdc, uint256 totalLP, uint256 raisedUsdc, ILaunchCommon.LaunchStatus status) {
         // Calculate raised amount (usdc value of LP tokens).
@@ -175,25 +175,30 @@ library LaunchControl {
             status = ILaunchCommon.LaunchStatus.PENDING;
         }
         _launchConfig.status = status;
-        if (status == ILaunchCommon.LaunchStatus.HARD_CAP_REACHED || status == ILaunchCommon.LaunchStatus.SOFT_CAP_REACHED) {
-            uint256 toBreak = (_launchConfig.values[9] * (DEN - _launchConfig.values[11])) / DEN;
-            uint256 toTeam = _launchConfig.values[9] - toBreak;
-            // Send % LP to the token team
-            IERC20(_vars.fomoUsdcLp).safeTransfer(_launchConfig.team, toTeam);
-            // LP is broken
-            IERC20(_vars.fomoUsdcLp).safeTransfer(_vars.steakLpProvider, toBreak);
-            (uint256 usdcAmount, uint256 fomoAmount) = IDexProvider(_vars.steakLpProvider).breakLP(_vars.fomoUsdcLp);
-            // % FOMO is burned
-            uint256 platformFeePercent = (_launchConfig.values[12] * DEN) / (DEN - _launchConfig.values[11]);
-            uint256 fomoToBurn = (fomoAmount * platformFeePercent) / DEN;
-            IERC20(_vars.fomo).safeTransfer(DEAD, fomoToBurn);
-            // % USDC is sent to protocol
-            uint256 usdcForTeam = (usdcAmount * platformFeePercent) / DEN;
-            IERC20(_vars.usdc).safeTransfer(_vars.owner, usdcForTeam);
-            // Save raised token amounts
-            _addrs.usdc = usdcAmount - usdcForTeam;
-            _addrs.fomo = fomoAmount - fomoToBurn;
-        }
+    }
+
+    function _tryToBreakLP(
+        ILaunchCommon.LaunchConfig storage _launchConfig,
+        ILaunchCommon.TokenAddressess storage _addrs,
+        Vars memory _vars
+    ) internal {
+        uint256 toBreak = (_launchConfig.values[9] * (DEN - _launchConfig.values[11])) / DEN;
+        uint256 toTeam = _launchConfig.values[9] - toBreak;
+        // Send % LP to the token team
+        IERC20(_vars.fomoUsdcLp).safeTransfer(_launchConfig.team, toTeam);
+        // LP is broken
+        IERC20(_vars.fomoUsdcLp).safeTransfer(_vars.steakLpProvider, toBreak);
+        (uint256 usdcAmount, uint256 fomoAmount) = IDexProvider(_vars.steakLpProvider).breakLP(_vars.fomoUsdcLp);
+        // % FOMO is burned
+        uint256 platformFeePercent = (_launchConfig.values[12] * DEN) / (DEN - _launchConfig.values[11]);
+        uint256 fomoToBurn = (fomoAmount * platformFeePercent) / DEN;
+        IERC20(_vars.fomo).safeTransfer(DEAD, fomoToBurn);
+        // % USDC is sent to protocol
+        uint256 usdcForTeam = (usdcAmount * platformFeePercent) / DEN;
+        IERC20(_vars.usdc).safeTransfer(_vars.owner, usdcForTeam);
+        // Save raised token amounts
+        _addrs.usdc = usdcAmount - usdcForTeam;
+        _addrs.fomo = fomoAmount - fomoToBurn;
     }
 
     /***** INTERNAL *****/

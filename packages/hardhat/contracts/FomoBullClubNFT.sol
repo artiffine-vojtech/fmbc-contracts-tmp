@@ -63,11 +63,11 @@ contract FomoBullClubNFT is ERC721, Adminable, ERC721Royalty, INFTWithLevel {
     ) ERC721(_name, _symbol) {
         baseUri = _baseUri;
         contractUri = _contractUri;
-        tiers[0] = Tier({price: 0.0625 ether, totalSupply: 0, maxSupply: 100, startingIndex: 0});
-        tiers[1] = Tier({price: 0.05 ether, totalSupply: 0, maxSupply: 500, startingIndex: 100});
-        tiers[2] = Tier({price: 0.0375 ether, totalSupply: 0, maxSupply: 1000, startingIndex: 600});
-        tiers[3] = Tier({price: 0.025 ether, totalSupply: 0, maxSupply: 2500, startingIndex: 1600});
-        tiers[4] = Tier({price: 0.019 ether, totalSupply: 0, maxSupply: 5000, startingIndex: 4100});
+        tiers[0] = Tier({price: 0.0000000625 ether, totalSupply: 0, maxSupply: 100, startingIndex: 0});
+        tiers[1] = Tier({price: 0.00000005 ether, totalSupply: 0, maxSupply: 500, startingIndex: 100});
+        tiers[2] = Tier({price: 0.0000000375 ether, totalSupply: 0, maxSupply: 1000, startingIndex: 600});
+        tiers[3] = Tier({price: 0.000000025 ether, totalSupply: 0, maxSupply: 2500, startingIndex: 1600});
+        tiers[4] = Tier({price: 0.000000019 ether, totalSupply: 0, maxSupply: 5000, startingIndex: 4100});
     }
 
     /**

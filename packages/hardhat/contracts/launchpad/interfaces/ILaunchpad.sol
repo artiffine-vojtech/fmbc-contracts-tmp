@@ -77,12 +77,18 @@ interface ILaunchpad is ILaunchCommon {
     /***** OWNER FUNCTIONS *****/
 
     /**
-     * @notice Set KOL addresses
+     * @notice Add KOL address.
      * @dev onlyOwner
-     * @param _kolAddresses Array of KOL addressess
-     * @param _isKol Array of boolean values indicating if address is KOL
+     * @param _kolAddress KOL address.
      */
-    function setKolAddresses(address[] memory _kolAddresses, bool[] memory _isKol) external;
+    function removeKOL(address _kolAddress) external;
+
+    /**
+     * @notice Remove KOL address.
+     * @dev onlyOwner
+     * @param _kolAddress KOL address.
+     */
+    function addKOL(address _kolAddress) external;
 
     /**
      * @notice Set the soft cap and launch fees

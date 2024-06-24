@@ -72,6 +72,8 @@ contract Launchpad is ILaunchpad, Ownable {
 
     /// @notice List of all KOL addresses
     address[] public kolAddresses;
+    /// @notice List of all not LAUNCHED or FAILED launches
+    uint256[] public activeLaunches;
     /// @notice Map of KOL addresses
     mapping(address => bool) public isKOL;
     /// @notice Launch -> User pledge amounts
@@ -200,7 +202,7 @@ contract Launchpad is ILaunchpad, Ownable {
                     USDC_MAX,
                     block.timestamp,
                     lpAmount,
-                    0,
+                    isKOL[msg.sender] ? lpAmount : 0,
                     _config.steakTeamFee,
                     PLATFORM_STEAK_FEE,
                     USDC_KOL_MIN,
@@ -209,6 +211,7 @@ contract Launchpad is ILaunchpad, Ownable {
                 status: LaunchStatus.PENDING
             })
         );
+        activeLaunches.push(launches.length - 1);
         Pledge storage userPledge = launchToUserPledge[launches.length - 1][msg.sender];
         userPledge.lp += lpAmount;
         userPledge.usdc += LAUNCH_FEE;
@@ -281,12 +284,17 @@ contract Launchpad is ILaunchpad, Ownable {
             dexProvider: launchConfig.dexProvider
         });
         if (launchConfig.status == LaunchStatus.PENDING) {
-            (, , , LaunchStatus status) = LaunchControl.tryToEndLaunch(launchConfig, addrs, vars);
-            if (status == LaunchStatus.PENDING || status == LaunchStatus.FAILED) {
+            (, , , LaunchStatus _status) = LaunchControl.tryToEndLaunch(launchConfig, vars);
+            if (_status == LaunchStatus.PENDING) {
+                return;
+            }
+            if (_status == LaunchStatus.FAILED) {
+                _removeFromActiveLaunches(_launchId);
                 return;
             }
         }
         // Launch the token
+        _removeFromActiveLaunches(_launchId);
         LaunchControl.launch(launchConfig, addrs, vars);
         IERC20 meme = IERC20(addrs.token);
 
@@ -355,27 +363,32 @@ contract Launchpad is ILaunchpad, Ownable {
 
     /***** OWNER *****/
 
+    function emergencyFailLaunch(uint256 _launchId) external onlyOwner {
+        LaunchConfig storage launchConfig = launches[_launchId];
+        if (launchConfig.status == LaunchStatus.FAILED) revert LaunchFailed();
+        if (launchConfig.status == LaunchStatus.LAUNCHED) revert AlreadyLaunched();
+        _removeFromActiveLaunches(_launchId);
+        launchConfig.status = LaunchStatus.FAILED;
+    }
+
     /**
      * @inheritdoc ILaunchpad
      */
-    function setKolAddresses(address[] memory _kolAddresses, bool[] memory _isKol) external onlyOwner {
-        if (_kolAddresses.length != _isKol.length) revert ArraysLengthMismatch();
-        for (uint256 i = 0; i < _kolAddresses.length; i++) {
-            if (isKOL[_kolAddresses[i]] != _isKol[i]) {
-                isKOL[_kolAddresses[i]] = _isKol[i];
-                if (_isKol[i]) {
-                    kolAddresses.push(_kolAddresses[i]);
-                } else {
-                    for (uint256 j = 0; j < kolAddresses.length; j++) {
-                        if (kolAddresses[j] == _kolAddresses[i]) {
-                            kolAddresses[j] = kolAddresses[kolAddresses.length - 1];
-                            kolAddresses.pop();
-                            break;
-                        }
-                    }
-                }
-            }
-        }
+    function removeKOL(address _kolAddress) external onlyOwner {
+        if (!isKOL[_kolAddress]) revert UserIsNotKOL();
+        isKOL[_kolAddress] = false;
+        _removeFromKolAddresses(_kolAddress);
+        _adjustRaisedLPKol(_kolAddress, true);
+    }
+
+    /**
+     * @inheritdoc ILaunchpad
+     */
+    function addKOL(address _kolAddress) external onlyOwner {
+        if (isKOL[_kolAddress]) revert UserIsKOL();
+        isKOL[_kolAddress] = true;
+        kolAddresses.push(_kolAddress);
+        _adjustRaisedLPKol(_kolAddress, false);
     }
 
     /**
@@ -460,11 +473,10 @@ contract Launchpad is ILaunchpad, Ownable {
         uint256 totalUsdc;
         uint256 totalLP;
         uint256 raisedUsdc;
+        LaunchStatus status;
         {
-            LaunchStatus status;
             (totalUsdc, totalLP, raisedUsdc, status) = LaunchControl.tryToEndLaunch(
                 launchConfig,
-                tokenAddresses[_launchId],
                 LaunchControl.Vars({
                     controllerFactory: CONTROLLER_FACTORY,
                     identityVerifier: address(identityVerifier),
@@ -480,6 +492,9 @@ contract Launchpad is ILaunchpad, Ownable {
                 })
             );
             if (status != LaunchStatus.PENDING) {
+                if (status == LaunchStatus.FAILED) {
+                    _removeFromActiveLaunches(_launchId);
+                }
                 return;
             }
         }
@@ -540,9 +555,8 @@ contract Launchpad is ILaunchpad, Ownable {
             emit Pledged(_launchId, msg.sender, maxPledgeLP, usdcPledgeValue);
         }
         // Check hard cap
-        LaunchControl.tryToEndLaunch(
+        (, , , status) = LaunchControl.tryToEndLaunch(
             launchConfig,
-            tokenAddresses[_launchId],
             LaunchControl.Vars({
                 controllerFactory: CONTROLLER_FACTORY,
                 identityVerifier: address(identityVerifier),
@@ -557,6 +571,10 @@ contract Launchpad is ILaunchpad, Ownable {
                 owner: owner()
             })
         );
+        if (status == LaunchStatus.FAILED) {
+            _removeFromActiveLaunches(_launchId);
+            return;
+        }
     }
 
     /**
@@ -583,6 +601,57 @@ contract Launchpad is ILaunchpad, Ownable {
             return 15; // 1.5 * SCALING_FACTOR
         } else {
             revert('Invalid token level');
+        }
+    }
+
+    /**
+     * @notice Remove launch id from active launches.
+     * @param _launchId Launch id.
+     */
+    function _removeFromActiveLaunches(uint256 _launchId) internal {
+        uint256 length = activeLaunches.length;
+        for (uint256 i = 0; i < length; i++) {
+            if (activeLaunches[i] == _launchId) {
+                activeLaunches[i] = activeLaunches[length - 1];
+                activeLaunches.pop();
+                break;
+            }
+        }
+    }
+
+    /**
+     * @notice Remove address from kol addresses.
+     * @param _kolAddress Kol address.
+     */
+    function _removeFromKolAddresses(address _kolAddress) internal {
+        uint256 length = kolAddresses.length;
+        for (uint256 i = 0; i < length; i++) {
+            if (kolAddresses[i] == _kolAddress) {
+                kolAddresses[i] = kolAddresses[length - 1];
+                kolAddresses.pop();
+                break;
+            }
+        }
+    }
+
+    /**
+     * @notice Adjust raised LP for KOL addresses on removing/adding KOLs.
+     * @param _kolAddress Kol address.
+     * @param _removingKol Flag indicating if KOL is being removed.
+     */
+    function _adjustRaisedLPKol(address _kolAddress, bool _removingKol) internal {
+        uint256 length = activeLaunches.length;
+        for (uint256 i = 0; i < length; i++) {
+            uint256 launchId = activeLaunches[i];
+            Pledge storage userPledge = launchToUserPledge[launchId][_kolAddress];
+            if (userPledge.lp > 0) {
+                LaunchConfig storage launchConfig = launches[launchId];
+                if (_removingKol) {
+                    launchConfig.values[10] -= userPledge.lp;
+                } else {
+                    launchConfig.values[10] += userPledge.lp;
+                }
+            }
         }
     }
 }

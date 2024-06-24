@@ -221,7 +221,7 @@ contract TokenEmissionsController is ITokenEmissionsController, Adminable {
     /**
      * @inheritdoc ITokenControllerCommons
      */
-    function addReward(address _rewardToken) external onlyOwner {
+    function addReward(address _rewardToken) external onlyAdmin {
         _addReward(_rewardToken);
     }
 
