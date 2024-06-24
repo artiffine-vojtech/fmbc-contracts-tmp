@@ -228,7 +228,9 @@ describe('TokenIncentivesController', function () {
       const { incentivesController, user } = await loadFixture(
         deployContractFixtureWithUserStaked
       )
-      let action = incentivesController.connect(user).withdraw(K1_TOKENS.add(1), user.address)
+      let action = incentivesController
+        .connect(user)
+        .withdraw(K1_TOKENS.add(1), user.address)
       await expect(action).to.be.revertedWith('Amount greater than staked')
     })
 
@@ -237,7 +239,9 @@ describe('TokenIncentivesController', function () {
         deployContractFixtureWithUserStaked
       )
       let balanceBefore = await stakingToken.balanceOf(user.address)
-      await incentivesController.connect(user).withdraw(K1_TOKENS.div(2), user.address)
+      await incentivesController
+        .connect(user)
+        .withdraw(K1_TOKENS.div(2), user.address)
       expect(await stakingToken.balanceOf(user.address)).to.be.equals(
         balanceBefore.add(K1_TOKENS.div(2))
       )
@@ -247,7 +251,9 @@ describe('TokenIncentivesController', function () {
       const { incentivesController, user } = await loadFixture(
         deployContractFixtureWithUserStaked
       )
-      await incentivesController.connect(user).withdraw(K1_TOKENS.div(2), user.address)
+      await incentivesController
+        .connect(user)
+        .withdraw(K1_TOKENS.div(2), user.address)
       let balance = await incentivesController.balances(user.address)
       expect(balance.boosted).to.be.false
       expect(balance.staked).to.be.eq(K1_TOKENS.div(2))
@@ -261,7 +267,9 @@ describe('TokenIncentivesController', function () {
       const { incentivesController, user } = await loadFixture(
         deployContractFixtureWithUserStaked
       )
-      let action = incentivesController.connect(user).withdraw(K1_TOKENS.div(2), user.address)
+      let action = incentivesController
+        .connect(user)
+        .withdraw(K1_TOKENS.div(2), user.address)
       await expect(action)
         .to.emit(incentivesController, 'Withdrawn')
         .withArgs(user.address, K1_TOKENS.div(2), K1_TOKENS.div(2))
@@ -275,7 +283,9 @@ describe('TokenIncentivesController', function () {
         await nftContract.connect(user).approve(incentivesController.address, 0)
         await incentivesController.connect(user).stakeNFT(0)
         let balanceBefore = await stakingToken.balanceOf(user.address)
-        await incentivesController.connect(user).withdraw(K1_TOKENS.div(2), user.address)
+        await incentivesController
+          .connect(user)
+          .withdraw(K1_TOKENS.div(2), user.address)
         expect(await stakingToken.balanceOf(user.address)).to.be.equals(
           balanceBefore.add(K1_TOKENS.div(2))
         )
@@ -287,7 +297,9 @@ describe('TokenIncentivesController', function () {
         )
         await nftContract.connect(user).approve(incentivesController.address, 0)
         await incentivesController.connect(user).stakeNFT(0)
-        await incentivesController.connect(user).withdraw(K1_TOKENS.div(2), user.address)
+        await incentivesController
+          .connect(user)
+          .withdraw(K1_TOKENS.div(2), user.address)
         let balance = await incentivesController.balances(user.address)
         expect(balance.boosted).to.be.true
         expect(balance.staked).to.be.eq(K1_TOKENS.div(2))
@@ -510,15 +522,14 @@ describe('TokenIncentivesController', function () {
 
   describe('getReward', () => {
     it('Should get all rewards if is the only one staked', async () => {
-      const { incentivesController, owner, user, rewardToken } = await loadFixture(
-        deployContractFixtureWithUserStaked
-      )
-      await rewardToken.connect(owner).approve(incentivesController.address, K100_TOKENS)
-      await incentivesController.connect(owner).notifyReward(
-        [rewardToken.address],
-        [K1_TOKENS],
-        ONE_DAY * 45
-      )
+      const { incentivesController, owner, user, rewardToken } =
+        await loadFixture(deployContractFixtureWithUserStaked)
+      await rewardToken
+        .connect(owner)
+        .approve(incentivesController.address, K100_TOKENS)
+      await incentivesController
+        .connect(owner)
+        .notifyReward([rewardToken.address], [K1_TOKENS], ONE_DAY * 45)
       const currentTimestmap = BigNumber.from(
         (await ethers.provider.getBlock('latest')).timestamp
       )

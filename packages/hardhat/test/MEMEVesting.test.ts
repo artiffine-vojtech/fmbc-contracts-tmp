@@ -451,15 +451,13 @@ describe('MEMEVesting', function () {
       await expect(action).to.be.revertedWith('TokensNotUnlocked')
     })
 
-    it("Should not claim from cancelled positions", async () => {
+    it('Should not claim from cancelled positions', async () => {
       const { vestingContract, erc20Contract, owner, tgeTimestamp, user2 } =
         await loadFixture(deployContractFixtureAtTGEWithUSer2Vest)
       await erc20Contract.approve(vestingContract.address, K100_TOKENS)
       await vestingContract.vestTokens(K100_TOKENS, user2.address)
       const user2BalanceBefore = await erc20Contract.balanceOf(user2.address)
-      const ownerBalanceBefore = await erc20Contract.balanceOf(
-        owner.address
-      )
+      const ownerBalanceBefore = await erc20Contract.balanceOf(owner.address)
       const vestingContractBalanceBefore = await erc20Contract.balanceOf(
         vestingContract.address
       )
@@ -473,11 +471,10 @@ describe('MEMEVesting', function () {
         vestingContract.address
       )
       expect(user2BalanceAfter).to.be.eq(user2BalanceBefore)
-      expect(vestingContractBalanceAfter).to.be.eq(
-        0
+      expect(vestingContractBalanceAfter).to.be.eq(0)
+      expect(await erc20Contract.balanceOf(owner.address)).to.be.eq(
+        vestingContractBalanceBefore.add(ownerBalanceBefore)
       )
-      expect(await erc20Contract.balanceOf(
-        owner.address)).to.be.eq(vestingContractBalanceBefore.add(ownerBalanceBefore))
     })
 
     it('Should transfer tokens properly at TGE', async () => {
@@ -866,9 +863,7 @@ describe('MEMEVesting', function () {
           0,
           tgeTimestamp.add(90 * ONE_DAY - 1)
         )
-        expect(at60Days).to.be.eq(
-          K100_TOKENS.mul(2).mul(1666).div(10000)
-        )
+        expect(at60Days).to.be.eq(K100_TOKENS.mul(2).mul(1666).div(10000))
         expect(atAlmost90Day).to.be.eq(at60Days)
       })
 
@@ -886,9 +881,7 @@ describe('MEMEVesting', function () {
           0,
           tgeTimestamp.add(120 * ONE_DAY - 1)
         )
-        expect(at90Days).to.be.eq(
-          K100_TOKENS.mul(3).mul(1666).div(10000)
-        )
+        expect(at90Days).to.be.eq(K100_TOKENS.mul(3).mul(1666).div(10000))
         expect(atAlmostat120Days).to.be.eq(at90Days)
       })
 
@@ -906,9 +899,7 @@ describe('MEMEVesting', function () {
           0,
           tgeTimestamp.add(150 * ONE_DAY - 1)
         )
-        expect(at120Days).to.be.eq(
-          K100_TOKENS.mul(4).mul(1666).div(10000)
-        )
+        expect(at120Days).to.be.eq(K100_TOKENS.mul(4).mul(1666).div(10000))
         expect(atAlmost150Days).to.be.eq(at120Days)
       })
 
@@ -926,9 +917,7 @@ describe('MEMEVesting', function () {
           0,
           tgeTimestamp.add(180 * ONE_DAY - 1)
         )
-        expect(at150Days).to.be.eq(
-          K100_TOKENS.mul(5).mul(1666).div(10000)
-        )
+        expect(at150Days).to.be.eq(K100_TOKENS.mul(5).mul(1666).div(10000))
         expect(atAlmost180Days).to.be.eq(at150Days)
       })
 
@@ -1020,12 +1009,14 @@ describe('MEMEVesting', function () {
   })
 
   describe('CancelVesting', async () => {
-    it("Should revert if called not by the owner", async () => {
+    it('Should revert if called not by the owner', async () => {
       const { vestingContract, user2, user } = await loadFixture(
         deployContractFixture
       )
       const action = vestingContract.connect(user2).cancelVesting(user.address)
-      await expect(action).to.be.revertedWith("Ownable: caller is not the owner")
+      await expect(action).to.be.revertedWith(
+        'Ownable: caller is not the owner'
+      )
     })
 
     it('Should transfer all unclaimed tokens back to owner', async () => {
@@ -1033,21 +1024,18 @@ describe('MEMEVesting', function () {
         await loadFixture(deployContractFixtureAtTGEWithUSer2Vest)
       const user2BalanceBefore = await erc20Contract.balanceOf(user2.address)
       const claimable = K100_TOKENS.mul(1666).div(10000)
-      const ownerBalanceBefore = await erc20Contract.balanceOf(
-        owner.address
-      )
+      const ownerBalanceBefore = await erc20Contract.balanceOf(owner.address)
       await ethers.provider.send('evm_setNextBlockTimestamp', [
         tgeTimestamp.toNumber() + 30 * ONE_DAY,
       ])
-      await vestingContract.connect(user2).claimTokens([0]);
+      await vestingContract.connect(user2).claimTokens([0])
       await vestingContract.connect(owner).cancelVesting(user2.address)
       const user2BalanceAfter = await erc20Contract.balanceOf(user2.address)
-      const ownerBalanceAfter = await erc20Contract.balanceOf(
-        owner.address
-      )
+      const ownerBalanceAfter = await erc20Contract.balanceOf(owner.address)
       expect(user2BalanceAfter).to.be.eq(user2BalanceBefore.add(claimable))
       expect(ownerBalanceAfter).to.be.eq(
-        ownerBalanceBefore.add(K100_TOKENS).sub(claimable))
+        ownerBalanceBefore.add(K100_TOKENS).sub(claimable)
+      )
     })
 
     it('Should not send tokens from already claimed position to owner', async () => {
@@ -1058,36 +1046,36 @@ describe('MEMEVesting', function () {
       await ethers.provider.send('evm_setNextBlockTimestamp', [
         tgeTimestamp.toNumber() + 30 * ONE_DAY,
       ])
-      await vestingContract.connect(user2).claimTokens([0]);
+      await vestingContract.connect(user2).claimTokens([0])
       await vestingContract.connect(owner).cancelVesting(user2.address)
-      const ownerBalanceBefore = await erc20Contract.balanceOf(
-        owner.address
-      )
+      const ownerBalanceBefore = await erc20Contract.balanceOf(owner.address)
       await erc20Contract.approve(vestingContract.address, K100_TOKENS)
-      await vestingContract.connect(owner).vestTokens(K100_TOKENS, user2.address);
+      await vestingContract
+        .connect(owner)
+        .vestTokens(K100_TOKENS, user2.address)
       const positions = await vestingContract.getVestingPositions(user2.address)
-      expect(positions[0].cancelled).to.be.true;
-      expect(positions[1].cancelled).to.be.false;
+      expect(positions[0].cancelled).to.be.true
+      expect(positions[1].cancelled).to.be.false
       await vestingContract.connect(owner).cancelVesting(user2.address)
       const user2BalanceAfter = await erc20Contract.balanceOf(user2.address)
-      const ownerBalanceAfter = await erc20Contract.balanceOf(
-        owner.address
-      )
+      const ownerBalanceAfter = await erc20Contract.balanceOf(owner.address)
       expect(user2BalanceAfter).to.be.eq(user2BalanceBefore.add(claimable))
-      expect(ownerBalanceAfter).to.be.eq(
-        ownerBalanceBefore)
-      const afterPositions = await vestingContract.getVestingPositions(user2.address)
-      expect(afterPositions[0].cancelled).to.be.true;
-      expect(afterPositions[1].cancelled).to.be.true;
+      expect(ownerBalanceAfter).to.be.eq(ownerBalanceBefore)
+      const afterPositions = await vestingContract.getVestingPositions(
+        user2.address
+      )
+      expect(afterPositions[0].cancelled).to.be.true
+      expect(afterPositions[1].cancelled).to.be.true
     })
 
     it('Should set vesting position to cancelled', async () => {
-      const { vestingContract, owner, user2 } =
-        await loadFixture(deployContractFixtureAtTGEWithUSer2Vest)
+      const { vestingContract, owner, user2 } = await loadFixture(
+        deployContractFixtureAtTGEWithUSer2Vest
+      )
       await vestingContract.connect(owner).cancelVesting(user2.address)
       const positions = await vestingContract.getVestingPositions(user2.address)
       expect(positions[0].amount).to.be.eq(positions[0].amountClaimed)
-      expect(positions[0].cancelled).to.be.true;
+      expect(positions[0].cancelled).to.be.true
     })
   })
 })

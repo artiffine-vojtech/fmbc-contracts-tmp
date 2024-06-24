@@ -394,11 +394,11 @@ describe('MemberNFTVerifierOnlyTokenId', () => {
       // transfer token to user2
       await nftContract
         .connect(user)
-      ['safeTransferFrom(address,address,uint256)'](
-        user.address,
-        user2.address,
-        OWNED_TOKEN_IDS_BY_USER[0]
-      )
+        ['safeTransferFrom(address,address,uint256)'](
+          user.address,
+          user2.address,
+          OWNED_TOKEN_IDS_BY_USER[0]
+        )
       expect(await nftContract.ownerOf(TOKEN_ID)).to.be.eq(user2.address)
 
       // second try, should fail

@@ -6,9 +6,25 @@ import env from 'hardhat'
 
 import { FomoBullClubNFT__factory } from '../../hardhat-types/src/factories/contracts'
 import { BigNumber, Contract, Signer, constants } from 'ethers'
-import { ControllerFactory__factory, ERC20, IVault, IdentityVerifier__factory, Launchpad, MEMEVesting, NFTChecker__factory, TokenEmissionsController, TokenIncentivesController, TokenIncentivesController__factory, Launchpad__factory, UniswapV2DexProvider__factory, BalancerDexProvider__factory, TokenEmissionsController__factory, TokenProxy__factory } from '../../hardhat-types/src'
-import { HttpNetworkHDAccountsConfig } from 'hardhat/types';
-import { ILaunchCommon } from '../../hardhat-types/src/contracts/launchpad/Launchpad';
+import {
+  ControllerFactory__factory,
+  ERC20,
+  IVault,
+  IdentityVerifier__factory,
+  Launchpad,
+  MEMEVesting,
+  NFTChecker__factory,
+  TokenEmissionsController,
+  TokenIncentivesController,
+  TokenIncentivesController__factory,
+  Launchpad__factory,
+  UniswapV2DexProvider__factory,
+  BalancerDexProvider__factory,
+  TokenEmissionsController__factory,
+  TokenProxy__factory,
+} from '../../hardhat-types/src'
+import { HttpNetworkHDAccountsConfig } from 'hardhat/types'
+import { ILaunchCommon } from '../../hardhat-types/src/contracts/launchpad/Launchpad'
 
 // const LP_5K = BigNumber.from("4999999999999899993731")  // $5k LP
 // const LP_1K = BigNumber.from("999999999999979998746")   // $1k LP
@@ -196,12 +212,21 @@ describe('Launchpad', function () {
 
     // Deploy FOMO proxy
     const fomoProxy = new TokenProxy__factory(owner)
-    const fomoProxyInstance = await fomoProxy.deploy("Staked FOMO", "sFOMO", fomo.address)
+    const fomoProxyInstance = await fomoProxy.deploy(
+      'Staked FOMO',
+      'sFOMO',
+      fomo.address
+    )
     await fomoProxyInstance.deployed()
 
     // Deploy FOMOController
     const fomoControllerFactory = new TokenEmissionsController__factory(owner)
-    const fomoController = await fomoControllerFactory.deploy(fomoUsdcLp.address, nft.address, fomo.address, fomoProxyInstance.address)
+    const fomoController = await fomoControllerFactory.deploy(
+      fomoUsdcLp.address,
+      nft.address,
+      fomo.address,
+      fomoProxyInstance.address
+    )
     await fomoController.deployed()
 
     // Deploy NFTChecker
@@ -225,8 +250,8 @@ describe('Launchpad', function () {
       libraries: { LaunchControl: libInstance.address },
     })) as Launchpad__factory
     const launchpad = await launchpadFactory.deploy(
-      fomo.address,
-      usdc.address,
+      '0x9A86980D3625b4A6E69D8a4606D51cbc019e2002',
+      '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
       fomoUsdcLp.address,
       steakController.address,
       fomoController.address,
@@ -545,8 +570,12 @@ describe('Launchpad', function () {
       })
       await fomoUsdcLp.connect(owner).transfer(pledgers[i].address, LP_5K)
       await launchpad.connect(owner).addKOL(pledgers[i].address)
-      await fomoUsdcLp.connect(pledgers[i]).approve(launchpad.address, constants.MaxUint256)
-      await launchpad.connect(pledgers[i]).pledge(0, LP_5K, false, SIGNED_DATA[i])
+      await fomoUsdcLp
+        .connect(pledgers[i])
+        .approve(launchpad.address, constants.MaxUint256)
+      await launchpad
+        .connect(pledgers[i])
+        .pledge(0, LP_5K, false, SIGNED_DATA[i])
     }
     return {
       // tokens
@@ -569,7 +598,7 @@ describe('Launchpad', function () {
       // other
       OWNED_TOKEN_IDS_BY_USER,
       OWNED_TOKEN_IDS_BY_USER2,
-      SIGNED_DATA
+      SIGNED_DATA,
     }
   }
 
@@ -595,23 +624,35 @@ describe('Launchpad', function () {
       // other
       OWNED_TOKEN_IDS_BY_USER,
       OWNED_TOKEN_IDS_BY_USER2,
-      SIGNED_DATA
+      SIGNED_DATA,
     } = await loadFixture(deployContractFixture)
-    await fomoUsdcLp.connect(user).approve(launchpad.address, constants.MaxUint256)
+    await fomoUsdcLp
+      .connect(user)
+      .approve(launchpad.address, constants.MaxUint256)
     const config = createLaunchConfig(1e9, 250000, team.address, user3.address)
     await launchpad.addKOL(user.address)
-    await launchpad.connect(user).createLaunch(config, false, await getUserVerificationData(user.address, owner))
+    await launchpad
+      .connect(user)
+      .createLaunch(
+        config,
+        false,
+        await getUserVerificationData(user.address, owner)
+      )
     const pledgers = await getSigners(54)
     // Pledge $245k (+ $5k deposit) = $250k in total
     for (let i = 5; i < 54; i++) {
       await owner.sendTransaction({
         to: pledgers[i].address,
-        value: parseEther("1.0")
-      });
+        value: parseEther('1.0'),
+      })
       await fomoUsdcLp.connect(owner).transfer(pledgers[i].address, LP_5K)
       await launchpad.connect(owner).addKOL(pledgers[i].address)
-      await fomoUsdcLp.connect(pledgers[i]).approve(launchpad.address, constants.MaxUint256)
-      await launchpad.connect(pledgers[i]).pledge(0, LP_5K, false, SIGNED_DATA[i])
+      await fomoUsdcLp
+        .connect(pledgers[i])
+        .approve(launchpad.address, constants.MaxUint256)
+      await launchpad
+        .connect(pledgers[i])
+        .pledge(0, LP_5K, false, SIGNED_DATA[i])
     }
     return {
       // tokens
@@ -740,7 +781,7 @@ describe('Launchpad', function () {
       softCap: launch[7][4],
       hardCap: launch[7][5],
       minPledge: launch[7][6],
-      maxPledge: launch[7][7],
+      maxPladge: launch[7][7],
       startTime: launch[7][8],
       raisedLP: launch[7][9],
       raisedLPKOL: launch[7][10],
@@ -1171,27 +1212,67 @@ describe('Launchpad', function () {
     })
 
     it('Should add launch index to activeLaunches', async () => {
-      const { launchpad, fomoUsdcLp, user, user3, team, owner } = await loadFixture(deployContractFixture)
-      const config = createLaunchConfig(1e9, 250000, team.address, user3.address)
-      await fomoUsdcLp.connect(user).approve(launchpad.address, constants.MaxUint256)
-      await launchpad.connect(user).createLaunch(config, false, await getUserVerificationData(user.address, owner))
+      const { launchpad, fomoUsdcLp, user, user3, team, owner } =
+        await loadFixture(deployContractFixture)
+      const config = createLaunchConfig(
+        1e9,
+        250000,
+        team.address,
+        user3.address
+      )
+      await fomoUsdcLp
+        .connect(user)
+        .approve(launchpad.address, constants.MaxUint256)
+      await launchpad
+        .connect(user)
+        .createLaunch(
+          config,
+          false,
+          await getUserVerificationData(user.address, owner)
+        )
 
       expect(await launchpad.activeLaunches(0)).to.be.eq(0)
     })
 
     it('Should add x2, remove, add launch indexes correclty to active launches', async () => {
-      const { launchpad, fomoUsdcLp, user, user3, team, owner } = await loadFixture(deployContractFixture)
-      const config = createLaunchConfig(1e9, 250000, team.address, user3.address)
-      await fomoUsdcLp.connect(user).approve(launchpad.address, constants.MaxUint256)
-      await launchpad.connect(user).createLaunch(config, false, await getUserVerificationData(user.address, owner))
-      await launchpad.connect(user).createLaunch(config, false, await getUserVerificationData(user.address, owner))
+      const { launchpad, fomoUsdcLp, user, user3, team, owner } =
+        await loadFixture(deployContractFixture)
+      const config = createLaunchConfig(
+        1e9,
+        250000,
+        team.address,
+        user3.address
+      )
+      await fomoUsdcLp
+        .connect(user)
+        .approve(launchpad.address, constants.MaxUint256)
+      await launchpad
+        .connect(user)
+        .createLaunch(
+          config,
+          false,
+          await getUserVerificationData(user.address, owner)
+        )
+      await launchpad
+        .connect(user)
+        .createLaunch(
+          config,
+          false,
+          await getUserVerificationData(user.address, owner)
+        )
 
       expect(await launchpad.activeLaunches(0)).to.be.eq(0)
       expect(await launchpad.activeLaunches(1)).to.be.eq(1)
 
       await launchpad.connect(owner).emergencyFailLaunch(0)
       expect(await launchpad.activeLaunches(0)).to.be.eq(1)
-      await launchpad.connect(user).createLaunch(config, false, await getUserVerificationData(user.address, owner))
+      await launchpad
+        .connect(user)
+        .createLaunch(
+          config,
+          false,
+          await getUserVerificationData(user.address, owner)
+        )
 
       expect(await launchpad.activeLaunches(0)).to.be.eq(1)
       expect(await launchpad.activeLaunches(1)).to.be.eq(2)
@@ -1333,7 +1414,7 @@ describe('Launchpad', function () {
         BigNumber.from(await config.hardCap).mul(1e6)
       )
       expect(launch.minPledge).to.be.eq(await launchpad.USDC_MIN())
-      expect(launch.maxPledge).to.be.eq(await launchpad.USDC_MAX())
+      expect(launch.maxPladge).to.be.eq(await launchpad.USDC_MAX())
       expect(launch.minPledgeKOLs).to.be.eq(await launchpad.USDC_KOL_MIN())
       expect(launch.maxPledgeKOLs).to.be.eq(await launchpad.USDC_KOL_MAX())
       expect(launch.startTime).to.be.eq(timestamp)
@@ -1350,19 +1431,28 @@ describe('Launchpad', function () {
     })
 
     it('Should add LaunchConfig correctly for KOL', async () => {
-      const { launchpad, fomoUsdcLp, user, team, user3, owner } = await loadFixture(deployContractFixture)
+      const { launchpad, fomoUsdcLp, user, team, user3, owner } =
+        await loadFixture(deployContractFixture)
       var config = createLaunchConfig(1e9, 250000, team.address, user3.address)
-      await launchpad.connect(owner).setKolAddresses([user.address], [true])
-      await fomoUsdcLp.connect(user).approve(launchpad.address, constants.MaxUint256)
-      await launchpad.connect(user).createLaunch(config, false, await getUserVerificationData(user.address, owner))
+      await launchpad.connect(owner).addKOL(user.address)
+      await fomoUsdcLp
+        .connect(user)
+        .approve(launchpad.address, constants.MaxUint256)
+      await launchpad
+        .connect(user)
+        .createLaunch(
+          config,
+          false,
+          await getUserVerificationData(user.address, owner)
+        )
       var timestamp = (await ethers.provider.getBlock('latest')).timestamp
 
       var launch = await getLaunchConfig(launchpad, 0)
-      expect(launch.name).to.be.eq("MEME")
-      expect(launch.symbol).to.be.eq("MEME")
-      expect(launch.totalSupply).to.be.eq("1000000000")
-      expect(launch.softCap).to.be.eq(parseUnits("100000", 6))
-      expect(launch.hardCap).to.be.eq(parseUnits("250000", 6))
+      expect(launch.name).to.be.eq('MEME')
+      expect(launch.symbol).to.be.eq('MEME')
+      expect(launch.totalSupply).to.be.eq('1000000000')
+      expect(launch.softCap).to.be.eq(parseUnits('100000', 6))
+      expect(launch.hardCap).to.be.eq(parseUnits('250000', 6))
       expect(launch.team).to.be.eq(team.address)
       expect(launch.startTime).to.be.eq(timestamp)
       expect(launch.raisedLP).to.be.eq(LP_5K)
@@ -1370,15 +1460,21 @@ describe('Launchpad', function () {
       expect(launch.status).to.be.eq(0)
 
       config = createLaunchConfig(1e10, 500000, team.address, user3.address)
-      await launchpad.connect(user).createLaunch(config, false, await getUserVerificationData(user.address, owner))
+      await launchpad
+        .connect(user)
+        .createLaunch(
+          config,
+          false,
+          await getUserVerificationData(user.address, owner)
+        )
 
       timestamp = (await ethers.provider.getBlock('latest')).timestamp
       launch = await getLaunchConfig(launchpad, 1)
-      expect(launch.name).to.be.eq("MEME")
-      expect(launch.symbol).to.be.eq("MEME")
-      expect(launch.totalSupply).to.be.eq("10000000000")
-      expect(launch.softCap).to.be.eq(parseUnits("100000", 6))
-      expect(launch.hardCap).to.be.eq(parseUnits("500000", 6))
+      expect(launch.name).to.be.eq('MEME')
+      expect(launch.symbol).to.be.eq('MEME')
+      expect(launch.totalSupply).to.be.eq('10000000000')
+      expect(launch.softCap).to.be.eq(parseUnits('100000', 6))
+      expect(launch.hardCap).to.be.eq(parseUnits('500000', 6))
       expect(launch.team).to.be.eq(team.address)
       expect(launch.startTime).to.be.eq(timestamp)
       expect(launch.raisedLP).to.be.eq(LP_5K)
@@ -1386,15 +1482,21 @@ describe('Launchpad', function () {
       expect(launch.status).to.be.eq(0)
 
       config = createLaunchConfig(1e11, 1000000, team.address, user3.address)
-      await launchpad.connect(user).createLaunch(config, false, await getUserVerificationData(user.address, owner))
+      await launchpad
+        .connect(user)
+        .createLaunch(
+          config,
+          false,
+          await getUserVerificationData(user.address, owner)
+        )
 
       timestamp = (await ethers.provider.getBlock('latest')).timestamp
       launch = await getLaunchConfig(launchpad, 2)
-      expect(launch.name).to.be.eq("MEME")
-      expect(launch.symbol).to.be.eq("MEME")
-      expect(launch.totalSupply).to.be.eq("100000000000")
-      expect(launch.softCap).to.be.eq(parseUnits("100000", 6))
-      expect(launch.hardCap).to.be.eq(parseUnits("1000000", 6))
+      expect(launch.name).to.be.eq('MEME')
+      expect(launch.symbol).to.be.eq('MEME')
+      expect(launch.totalSupply).to.be.eq('100000000000')
+      expect(launch.softCap).to.be.eq(parseUnits('100000', 6))
+      expect(launch.hardCap).to.be.eq(parseUnits('1000000', 6))
       expect(launch.team).to.be.eq(team.address)
       expect(launch.startTime).to.be.eq(timestamp)
       expect(launch.raisedLP).to.be.eq(LP_5K)
@@ -1403,122 +1505,51 @@ describe('Launchpad', function () {
     })
 
     it('Should add LaunchConfig with correct values for KOL', async () => {
-      const { launchpad, fomoUsdcLp, user, team, user3, owner } = await loadFixture(deployContractFixture)
+      const { launchpad, fomoUsdcLp, user, team, user3, owner } =
+        await loadFixture(deployContractFixture)
       var config = createLaunchConfig(1e9, 250000, team.address, user3.address)
-      await launchpad.connect(owner).setKolAddresses([user.address], [true])
-      await fomoUsdcLp.connect(user).approve(launchpad.address, constants.MaxUint256)
-      await launchpad.connect(user).createLaunch(config, false, await getUserVerificationData(user.address, owner))
+      await launchpad.connect(owner).addKOL(user.address)
+      await fomoUsdcLp
+        .connect(user)
+        .approve(launchpad.address, constants.MaxUint256)
+      await launchpad
+        .connect(user)
+        .createLaunch(
+          config,
+          false,
+          await getUserVerificationData(user.address, owner)
+        )
       var timestamp = (await ethers.provider.getBlock('latest')).timestamp
       config.allocations.push(0)
       config.allocations[6] = await launchpad.PLATFORM_MEME_FEE()
       var launch = await getLaunchConfig(launchpad, 0)
-      expect(launch.name).to.be.eq(config.name);
-      expect(launch.symbol).to.be.eq(config.symbol);
-      expect(launch.dexProvider).to.be.eq(await launchpad.dexProviders(config.dexIndex));
-      expect(launch.team).to.be.eq(team.address);
-      expect(launch.x).to.be.eq(user3.address);
-      expect(launch.totalSupply).to.be.eq(config.totalSupply);
-      expect(launch.softCap).to.be.eq(await launchpad.USDC_SOFT_CAP());
-      expect(launch.hardCap).to.be.eq(BigNumber.from(await config.hardCap).mul(1e6));
-      expect(launch.minPledge).to.be.eq(await launchpad.USDC_MIN());
-      expect(launch.maxPladge).to.be.eq(await launchpad.USDC_MAX());
-      expect(launch.minPledgeKOLs).to.be.eq(await launchpad.USDC_KOL_MIN());
-      expect(launch.maxPledgeKOLs).to.be.eq(await launchpad.USDC_KOL_MAX());
-      expect(launch.startTime).to.be.eq(timestamp);
-      expect(launch.raisedLP).to.be.eq(LP_5K);
-      expect(launch.raisedLPKOL).to.be.eq(LP_5K);
-      expect(launch.allocations).to.be.deep.eq(config.allocations);
-      expect(launch.rewardsAllocations).to.be.deep.eq(config.rewardsAllocations);
-      expect(launch.rounds).to.be.deep.eq(config.rounds);
-      expect(launch.status).to.be.eq(0);
-      expect(launch.steakTeamFee).to.be.eq(config.steakTeamFee);
-      expect(launch.steakPlatformFee).to.be.eq(await launchpad.PLATFORM_STEAK_FEE());
-    })
-
-    it('Should add LaunchConfig correctly for KOL', async () => {
-      const { launchpad, fomoUsdcLp, user, team, user3, owner } = await loadFixture(deployContractFixture)
-      var config = createLaunchConfig(1e9, 250000, team.address, user3.address)
-      await launchpad.connect(owner).addKOL(user.address)
-      await fomoUsdcLp.connect(user).approve(launchpad.address, constants.MaxUint256)
-      await launchpad.connect(user).createLaunch(config, false, await getUserVerificationData(user.address, owner))
-      var timestamp = (await ethers.provider.getBlock('latest')).timestamp
-
-      var launch = await getLaunchConfig(launchpad, 0)
-      expect(launch.name).to.be.eq("MEME")
-      expect(launch.symbol).to.be.eq("MEME")
-      expect(launch.totalSupply).to.be.eq("1000000000")
-      expect(launch.softCap).to.be.eq(parseUnits("100000", 6))
-      expect(launch.hardCap).to.be.eq(parseUnits("250000", 6))
+      expect(launch.name).to.be.eq(config.name)
+      expect(launch.symbol).to.be.eq(config.symbol)
+      expect(launch.dexProvider).to.be.eq(
+        await launchpad.dexProviders(config.dexIndex)
+      )
       expect(launch.team).to.be.eq(team.address)
+      expect(launch.x).to.be.eq(user3.address)
+      expect(launch.totalSupply).to.be.eq(config.totalSupply)
+      expect(launch.softCap).to.be.eq(await launchpad.USDC_SOFT_CAP())
+      expect(launch.hardCap).to.be.eq(
+        BigNumber.from(await config.hardCap).mul(1e6)
+      )
+      expect(launch.minPledge).to.be.eq(await launchpad.USDC_MIN())
+      expect(launch.maxPladge).to.be.eq(await launchpad.USDC_MAX())
+      expect(launch.minPledgeKOLs).to.be.eq(await launchpad.USDC_KOL_MIN())
+      expect(launch.maxPledgeKOLs).to.be.eq(await launchpad.USDC_KOL_MAX())
       expect(launch.startTime).to.be.eq(timestamp)
       expect(launch.raisedLP).to.be.eq(LP_5K)
       expect(launch.raisedLPKOL).to.be.eq(LP_5K)
+      expect(launch.allocations).to.be.deep.eq(config.allocations)
+      expect(launch.rewardsAllocations).to.be.deep.eq(config.rewardsAllocations)
+      expect(launch.rounds).to.be.deep.eq(config.rounds)
       expect(launch.status).to.be.eq(0)
-
-      config = createLaunchConfig(1e10, 500000, team.address, user3.address)
-      await launchpad.connect(user).createLaunch(config, false, await getUserVerificationData(user.address, owner))
-
-      timestamp = (await ethers.provider.getBlock('latest')).timestamp
-      launch = await getLaunchConfig(launchpad, 1)
-      expect(launch.name).to.be.eq("MEME")
-      expect(launch.symbol).to.be.eq("MEME")
-      expect(launch.totalSupply).to.be.eq("10000000000")
-      expect(launch.softCap).to.be.eq(parseUnits("100000", 6))
-      expect(launch.hardCap).to.be.eq(parseUnits("500000", 6))
-      expect(launch.team).to.be.eq(team.address)
-      expect(launch.startTime).to.be.eq(timestamp)
-      expect(launch.raisedLP).to.be.eq(LP_5K)
-      expect(launch.raisedLPKOL).to.be.eq(LP_5K)
-      expect(launch.status).to.be.eq(0)
-
-      config = createLaunchConfig(1e11, 1000000, team.address, user3.address)
-      await launchpad.connect(user).createLaunch(config, false, await getUserVerificationData(user.address, owner))
-
-      timestamp = (await ethers.provider.getBlock('latest')).timestamp
-      launch = await getLaunchConfig(launchpad, 2)
-      expect(launch.name).to.be.eq("MEME")
-      expect(launch.symbol).to.be.eq("MEME")
-      expect(launch.totalSupply).to.be.eq("100000000000")
-      expect(launch.softCap).to.be.eq(parseUnits("100000", 6))
-      expect(launch.hardCap).to.be.eq(parseUnits("1000000", 6))
-      expect(launch.team).to.be.eq(team.address)
-      expect(launch.startTime).to.be.eq(timestamp)
-      expect(launch.raisedLP).to.be.eq(LP_5K)
-      expect(launch.raisedLPKOL).to.be.eq(LP_5K)
-      expect(launch.status).to.be.eq(0)
-    })
-
-    it('Should add LaunchConfig with correct values for KOL', async () => {
-      const { launchpad, fomoUsdcLp, user, team, user3, owner } = await loadFixture(deployContractFixture)
-      var config = createLaunchConfig(1e9, 250000, team.address, user3.address)
-      await launchpad.connect(owner).addKOL(user.address)
-      await fomoUsdcLp.connect(user).approve(launchpad.address, constants.MaxUint256)
-      await launchpad.connect(user).createLaunch(config, false, await getUserVerificationData(user.address, owner))
-      var timestamp = (await ethers.provider.getBlock('latest')).timestamp
-      config.allocations.push(0)
-      config.allocations[6] = await launchpad.PLATFORM_MEME_FEE()
-      var launch = await getLaunchConfig(launchpad, 0)
-      expect(launch.name).to.be.eq(config.name);
-      expect(launch.symbol).to.be.eq(config.symbol);
-      expect(launch.dexProvider).to.be.eq(await launchpad.dexProviders(config.dexIndex));
-      expect(launch.team).to.be.eq(team.address);
-      expect(launch.x).to.be.eq(user3.address);
-      expect(launch.totalSupply).to.be.eq(config.totalSupply);
-      expect(launch.softCap).to.be.eq(await launchpad.USDC_SOFT_CAP());
-      expect(launch.hardCap).to.be.eq(BigNumber.from(await config.hardCap).mul(1e6));
-      expect(launch.minPledge).to.be.eq(await launchpad.USDC_MIN());
-      expect(launch.maxPladge).to.be.eq(await launchpad.USDC_MAX());
-      expect(launch.minPledgeKOLs).to.be.eq(await launchpad.USDC_KOL_MIN());
-      expect(launch.maxPledgeKOLs).to.be.eq(await launchpad.USDC_KOL_MAX());
-      expect(launch.startTime).to.be.eq(timestamp);
-      expect(launch.raisedLP).to.be.eq(LP_5K);
-      expect(launch.raisedLPKOL).to.be.eq(LP_5K);
-      expect(launch.allocations).to.be.deep.eq(config.allocations);
-      expect(launch.rewardsAllocations).to.be.deep.eq(config.rewardsAllocations);
-      expect(launch.rounds).to.be.deep.eq(config.rounds);
-      expect(launch.status).to.be.eq(0);
-      expect(launch.steakTeamFee).to.be.eq(config.steakTeamFee);
-      expect(launch.steakPlatformFee).to.be.eq(await launchpad.PLATFORM_STEAK_FEE());
+      expect(launch.steakTeamFee).to.be.eq(config.steakTeamFee)
+      expect(launch.steakPlatformFee).to.be.eq(
+        await launchpad.PLATFORM_STEAK_FEE()
+      )
     })
 
     it('Should update user pledge correctly', async () => {
@@ -1573,15 +1604,23 @@ describe('Launchpad', function () {
 
   describe('Pledge', async () => {
     it('Should revert if user is not verified', async () => {
-      const { launchpad, fomoUsdcLp, user, SIGNED_DATA } = await loadFixture(deployContractFixtureWithLaunch)
+      const { launchpad, fomoUsdcLp, user, SIGNED_DATA } = await loadFixture(
+        deployContractFixtureWithLaunch
+      )
       await launchpad.addKOL(user.address)
-      await fomoUsdcLp.connect(user).approve(launchpad.address, constants.MaxUint256)
-      const action = launchpad.connect(user).pledge(0, LP_500, false, SIGNED_DATA[0])
+      await fomoUsdcLp
+        .connect(user)
+        .approve(launchpad.address, constants.MaxUint256)
+      const action = launchpad
+        .connect(user)
+        .pledge(0, LP_500, false, SIGNED_DATA[0])
       await expect(action).to.be.revertedWith(ERROR.VerificationFailed)
     })
 
     it('Should revert if launch is not in PENDING state', async () => {
-      const { launchpad, fomoUsdcLp, user, owner } = await loadFixture(deployContractFixtureWithLaunch)
+      const { launchpad, fomoUsdcLp, user, owner } = await loadFixture(
+        deployContractFixtureWithLaunch
+      )
       await launchpad.addKOL(user.address)
       const launch = await getLaunchConfig(launchpad, 0)
       const blockTimestamp = launch.startTime
@@ -1611,18 +1650,30 @@ describe('Launchpad', function () {
     })
 
     it('Should fail if user has too little lpt', async () => {
-      const { launchpad, fomoUsdcLp, user3, SIGNED_DATA } = await loadFixture(deployContractFixtureWithLaunch)
+      const { launchpad, fomoUsdcLp, user3, SIGNED_DATA } = await loadFixture(
+        deployContractFixtureWithLaunch
+      )
       await launchpad.addKOL(user3.address)
-      await fomoUsdcLp.connect(user3).approve(launchpad.address, constants.MaxUint256)
-      const action = launchpad.connect(user3).pledge(0, LP_500, false, SIGNED_DATA[3])
+      await fomoUsdcLp
+        .connect(user3)
+        .approve(launchpad.address, constants.MaxUint256)
+      const action = launchpad
+        .connect(user3)
+        .pledge(0, LP_500, false, SIGNED_DATA[3])
       await expect(action).to.be.revertedWith('ds-math-sub-underflow')
     })
 
     it('Should fail if user has too little lpt in steak', async () => {
-      const { launchpad, fomoUsdcLp, user3, SIGNED_DATA } = await loadFixture(deployContractFixtureWithLaunch)
+      const { launchpad, fomoUsdcLp, user3, SIGNED_DATA } = await loadFixture(
+        deployContractFixtureWithLaunch
+      )
       await launchpad.addKOL(user3.address)
-      await fomoUsdcLp.connect(user3).approve(launchpad.address, constants.MaxUint256)
-      const action = launchpad.connect(user3).pledge(0, LP_500, true, SIGNED_DATA[3])
+      await fomoUsdcLp
+        .connect(user3)
+        .approve(launchpad.address, constants.MaxUint256)
+      const action = launchpad
+        .connect(user3)
+        .pledge(0, LP_500, true, SIGNED_DATA[3])
       await expect(action).to.be.revertedWith('Amount greater than staked')
     })
 
@@ -1646,8 +1697,12 @@ describe('Launchpad', function () {
         })
         await fomoUsdcLp.connect(owner).transfer(pledgers[i].address, LP_5K)
         await launchpad.connect(owner).addKOL(pledgers[i].address)
-        await fomoUsdcLp.connect(pledgers[i]).approve(launchpad.address, constants.MaxUint256)
-        await launchpad.connect(pledgers[i]).pledge(0, LP_5K, false, SIGNED_DATA[i])
+        await fomoUsdcLp
+          .connect(pledgers[i])
+          .approve(launchpad.address, constants.MaxUint256)
+        await launchpad
+          .connect(pledgers[i])
+          .pledge(0, LP_5K, false, SIGNED_DATA[i])
       }
       // Inflate FOMO token price
       const options = {
@@ -1662,7 +1717,9 @@ describe('Launchpad', function () {
       // const RAISED_USDC = BigNumber.from("251125000000").div(2)
       // const RAISED_FOMO = BigNumber.from("119520940556626094592287")
       await launchpad.connect(owner).addKOL(user.address)
-      await fomoUsdcLp.connect(user).approve(launchpad.address, constants.MaxUint256)
+      await fomoUsdcLp
+        .connect(user)
+        .approve(launchpad.address, constants.MaxUint256)
       const userBalanceBefore = await fomoUsdcLp.balanceOf(user.address)
       // const ownerBalanceBefore = await usdc.balanceOf(owner.address)
       await launchpad.connect(user).pledge(0, LP_5K, false, SIGNED_DATA[1])
@@ -1708,14 +1765,20 @@ describe('Launchpad', function () {
         })
         await fomoUsdcLp.connect(owner).transfer(pledgers[i].address, LP_5K)
         await launchpad.connect(owner).addKOL(pledgers[i].address)
-        await fomoUsdcLp.connect(pledgers[i]).approve(launchpad.address, constants.MaxUint256)
-        await launchpad.connect(pledgers[i]).pledge(0, LP_5K, false, SIGNED_DATA[i])
+        await fomoUsdcLp
+          .connect(pledgers[i])
+          .approve(launchpad.address, constants.MaxUint256)
+        await launchpad
+          .connect(pledgers[i])
+          .pledge(0, LP_5K, false, SIGNED_DATA[i])
       }
       // Try to pledge when raised value is $250,000 (above hard cap)
       // const RAISED_USDC = BigNumber.from("250000000000").div(2)
       // const RAISED_FOMO = BigNumber.from("125000000000000000000000")
       await launchpad.connect(owner).addKOL(user.address)
-      await fomoUsdcLp.connect(user).approve(launchpad.address, constants.MaxUint256)
+      await fomoUsdcLp
+        .connect(user)
+        .approve(launchpad.address, constants.MaxUint256)
       const userBalanceBefore = await fomoUsdcLp.balanceOf(user.address)
       // const ownerBalanceBefore = await usdc.balanceOf(owner.address)
       await launchpad.connect(user).pledge(0, LP_5K, false, SIGNED_DATA[1])
@@ -1725,7 +1788,7 @@ describe('Launchpad', function () {
       )
       const userPledge = await launchpad.launchToUserPledge(0, user.address)
       expect(userPledge.lp).to.be.eq(LP_5K)
-      expect(userPledge.usdc).to.be.eq(parseUnits("5000", 6))
+      expect(userPledge.usdc).to.be.eq(parseUnits('5000', 6))
       // const alloc = await launchpad.tokenAddresses(0)
       // expect(alloc.usdc).to.be.eq(RAISED_USDC.mul(75).div(100))
       // expect(alloc.fomo).to.be.eq(RAISED_FOMO.mul(75).div(100))
@@ -1760,13 +1823,19 @@ describe('Launchpad', function () {
         })
         await fomoUsdcLp.connect(owner).transfer(pledgers[i].address, LP_5K)
         await launchpad.connect(owner).addKOL(pledgers[i].address)
-        await fomoUsdcLp.connect(pledgers[i]).approve(launchpad.address, constants.MaxUint256)
-        await launchpad.connect(pledgers[i]).pledge(0, LP_5K, false, SIGNED_DATA[i])
+        await fomoUsdcLp
+          .connect(pledgers[i])
+          .approve(launchpad.address, constants.MaxUint256)
+        await launchpad
+          .connect(pledgers[i])
+          .pledge(0, LP_5K, false, SIGNED_DATA[i])
       }
       // Try to pledge when raised value is $100,000 (soft cap & after deadline)
       // const RAISED_USDC = BigNumber.from("100000000000").div(2)
       // const RAISED_FOMO = BigNumber.from("100000000000000000000000").div(2)
-      await fomoUsdcLp.connect(user).approve(launchpad.address, constants.MaxUint256)
+      await fomoUsdcLp
+        .connect(user)
+        .approve(launchpad.address, constants.MaxUint256)
       const userBalanceBefore = await fomoUsdcLp.balanceOf(user.address)
       // const ownerBalanceBefore = await usdc.balanceOf(owner.address)
       const launchBefore = await getLaunchConfig(launchpad, 0)
@@ -1813,7 +1882,11 @@ describe('Launchpad', function () {
         user3.address
       )
       await fomoUsdcLp.approve(launchpad.address, constants.MaxUint256)
-      await launchpad.createLaunch(config, false, await getUserVerificationData(owner.address, owner))
+      await launchpad.createLaunch(
+        config,
+        false,
+        await getUserVerificationData(owner.address, owner)
+      )
       expect(await launchpad.activeLaunches(0)).to.be.eq(0)
       expect(await launchpad.activeLaunches(1)).to.be.eq(1)
       const launch = await getLaunchConfig(launchpad, 0)
@@ -1826,8 +1899,12 @@ describe('Launchpad', function () {
         })
         await fomoUsdcLp.connect(owner).transfer(pledgers[i].address, LP_5K)
         await launchpad.connect(owner).addKOL(pledgers[i].address)
-        await fomoUsdcLp.connect(pledgers[i]).approve(launchpad.address, constants.MaxUint256)
-        await launchpad.connect(pledgers[i]).pledge(0, LP_5K, false, SIGNED_DATA[i])
+        await fomoUsdcLp
+          .connect(pledgers[i])
+          .approve(launchpad.address, constants.MaxUint256)
+        await launchpad
+          .connect(pledgers[i])
+          .pledge(0, LP_5K, false, SIGNED_DATA[i])
       }
       const balanceBefore = await fomoUsdcLp.balanceOf(launchpad.address)
       await fomoUsdcLp
@@ -1846,7 +1923,9 @@ describe('Launchpad', function () {
           await getUserVerificationData(user.address, owner, blockTimestamp)
         )
       expect((await getLaunchConfig(launchpad, 0)).status).to.be.eq(3)
-      expect(await fomoUsdcLp.balanceOf(launchpad.address)).to.be.eq(balanceBefore)
+      expect(await fomoUsdcLp.balanceOf(launchpad.address)).to.be.eq(
+        balanceBefore
+      )
       expect(await launchpad.activeLaunches(0)).to.be.eq(1)
     })
 
@@ -1865,15 +1944,23 @@ describe('Launchpad', function () {
       })
 
       it('Should revert if pledge is below min pledge', async () => {
-        const { launchpad, fomoUsdcLp, user, SIGNED_DATA } = await loadFixture(deployContractFixtureWithLaunch)
+        const { launchpad, fomoUsdcLp, user, SIGNED_DATA } = await loadFixture(
+          deployContractFixtureWithLaunch
+        )
         await launchpad.addKOL(user.address)
-        await fomoUsdcLp.connect(user).approve(launchpad.address, constants.MaxUint256)
-        const action = launchpad.connect(user).pledge(0, LP_500.sub(1), false, SIGNED_DATA[1])
+        await fomoUsdcLp
+          .connect(user)
+          .approve(launchpad.address, constants.MaxUint256)
+        const action = launchpad
+          .connect(user)
+          .pledge(0, LP_500.sub(1), false, SIGNED_DATA[1])
         await expect(action).to.be.revertedWith(ERROR.MinPledgeNotREached)
       })
 
       it('Should transfer min pledge tokens succesfully', async () => {
-        const { launchpad, fomoUsdcLp, user, SIGNED_DATA } = await loadFixture(deployContractFixtureWithLaunch)
+        const { launchpad, fomoUsdcLp, user, SIGNED_DATA } = await loadFixture(
+          deployContractFixtureWithLaunch
+        )
         await launchpad.addKOL(user.address)
         const balanceBefore = await fomoUsdcLp.balanceOf(launchpad.address)
         await fomoUsdcLp
@@ -1890,7 +1977,9 @@ describe('Launchpad', function () {
       })
 
       it('Should transfer min pledge tokens succesfully using steak', async () => {
-        const { launchpad, user2, fomoUsdcLp, SIGNED_DATA } = await loadFixture(deployContractFixtureWithLaunch)
+        const { launchpad, user2, fomoUsdcLp, SIGNED_DATA } = await loadFixture(
+          deployContractFixtureWithLaunch
+        )
         await launchpad.addKOL(user2.address)
         const balanceBefore = await fomoUsdcLp.balanceOf(launchpad.address)
         const action = launchpad
@@ -1904,7 +1993,9 @@ describe('Launchpad', function () {
       })
 
       it('Should transfer max pledge tokens', async () => {
-        const { launchpad, user, fomoUsdcLp, SIGNED_DATA } = await loadFixture(deployContractFixtureWithLaunch)
+        const { launchpad, user, fomoUsdcLp, SIGNED_DATA } = await loadFixture(
+          deployContractFixtureWithLaunch
+        )
         await launchpad.addKOL(user.address)
         const balanceBefore = await fomoUsdcLp.balanceOf(launchpad.address)
         await fomoUsdcLp
@@ -1921,7 +2012,9 @@ describe('Launchpad', function () {
       })
 
       it('Should transfer min pledge tokens succesfully using steak', async () => {
-        const { launchpad, user2, fomoUsdcLp, SIGNED_DATA } = await loadFixture(deployContractFixtureWithLaunch)
+        const { launchpad, user2, fomoUsdcLp, SIGNED_DATA } = await loadFixture(
+          deployContractFixtureWithLaunch
+        )
         await launchpad.addKOL(user2.address)
         const balanceBefore = await fomoUsdcLp.balanceOf(launchpad.address)
         const action = launchpad
@@ -1935,9 +2028,13 @@ describe('Launchpad', function () {
       })
 
       it('Should update user pledge info correctly', async () => {
-        const { launchpad, user, fomoUsdcLp, SIGNED_DATA } = await loadFixture(deployContractFixtureWithLaunch)
+        const { launchpad, user, fomoUsdcLp, SIGNED_DATA } = await loadFixture(
+          deployContractFixtureWithLaunch
+        )
         await launchpad.addKOL(user.address)
-        await fomoUsdcLp.connect(user).approve(launchpad.address, constants.MaxUint256)
+        await fomoUsdcLp
+          .connect(user)
+          .approve(launchpad.address, constants.MaxUint256)
         await launchpad.connect(user).pledge(0, LP_500, false, SIGNED_DATA[1])
 
         const userPledge = await launchpad.launchToUserPledge(0, user.address)
@@ -1946,9 +2043,13 @@ describe('Launchpad', function () {
       })
 
       it('Should update raisedLP correctly', async () => {
-        const { launchpad, user, fomoUsdcLp, SIGNED_DATA } = await loadFixture(deployContractFixtureWithLaunch)
+        const { launchpad, user, fomoUsdcLp, SIGNED_DATA } = await loadFixture(
+          deployContractFixtureWithLaunch
+        )
         await launchpad.addKOL(user.address)
-        await fomoUsdcLp.connect(user).approve(launchpad.address, constants.MaxUint256)
+        await fomoUsdcLp
+          .connect(user)
+          .approve(launchpad.address, constants.MaxUint256)
         await launchpad.connect(user).pledge(0, LP_500, false, SIGNED_DATA[1])
 
         const launch = await getLaunchConfig(launchpad, 0)
@@ -1956,9 +2057,13 @@ describe('Launchpad', function () {
       })
 
       it('Should update raisedLPKOL correctly', async () => {
-        const { launchpad, user, fomoUsdcLp, SIGNED_DATA } = await loadFixture(deployContractFixtureWithLaunch)
+        const { launchpad, user, fomoUsdcLp, SIGNED_DATA } = await loadFixture(
+          deployContractFixtureWithLaunch
+        )
         await launchpad.addKOL(user.address)
-        await fomoUsdcLp.connect(user).approve(launchpad.address, constants.MaxUint256)
+        await fomoUsdcLp
+          .connect(user)
+          .approve(launchpad.address, constants.MaxUint256)
         await launchpad.connect(user).pledge(0, LP_500, false, SIGNED_DATA[1])
 
         const launch = await getLaunchConfig(launchpad, 0)
@@ -1966,17 +2071,29 @@ describe('Launchpad', function () {
       })
 
       it('Should emit Pledged event correctly', async () => {
-        const { launchpad, user, fomoUsdcLp, SIGNED_DATA } = await loadFixture(deployContractFixtureWithLaunch)
+        const { launchpad, user, fomoUsdcLp, SIGNED_DATA } = await loadFixture(
+          deployContractFixtureWithLaunch
+        )
         await launchpad.addKOL(user.address)
-        await fomoUsdcLp.connect(user).approve(launchpad.address, constants.MaxUint256)
-        const action = launchpad.connect(user).pledge(0, LP_500, false, SIGNED_DATA[1])
-        await expect(action).to.emit(launchpad, 'Pledged').withArgs(0, user.address, LP_500, parseUnits("500", 6))
+        await fomoUsdcLp
+          .connect(user)
+          .approve(launchpad.address, constants.MaxUint256)
+        const action = launchpad
+          .connect(user)
+          .pledge(0, LP_500, false, SIGNED_DATA[1])
+        await expect(action)
+          .to.emit(launchpad, 'Pledged')
+          .withArgs(0, user.address, LP_500, parseUnits('500', 6))
       })
 
       it('Should update user pledge info correctly on consecutive pledge', async () => {
-        const { launchpad, user, fomoUsdcLp, SIGNED_DATA } = await loadFixture(deployContractFixtureWithLaunch)
+        const { launchpad, user, fomoUsdcLp, SIGNED_DATA } = await loadFixture(
+          deployContractFixtureWithLaunch
+        )
         await launchpad.addKOL(user.address)
-        await fomoUsdcLp.connect(user).approve(launchpad.address, constants.MaxUint256)
+        await fomoUsdcLp
+          .connect(user)
+          .approve(launchpad.address, constants.MaxUint256)
         await launchpad.connect(user).pledge(0, LP_1K, false, SIGNED_DATA[1])
         await launchpad.connect(user).pledge(0, LP_1K, false, SIGNED_DATA[1])
         await launchpad.connect(user).pledge(0, LP_1K, false, SIGNED_DATA[1])
@@ -1988,9 +2105,13 @@ describe('Launchpad', function () {
       })
 
       it('Should revert if max pledge is reached', async () => {
-        const { launchpad, user, fomoUsdcLp, SIGNED_DATA } = await loadFixture(deployContractFixtureWithLaunch)
+        const { launchpad, user, fomoUsdcLp, SIGNED_DATA } = await loadFixture(
+          deployContractFixtureWithLaunch
+        )
         await launchpad.addKOL(user.address)
-        await fomoUsdcLp.connect(user).approve(launchpad.address, constants.MaxUint256)
+        await fomoUsdcLp
+          .connect(user)
+          .approve(launchpad.address, constants.MaxUint256)
         await launchpad.connect(user).pledge(0, LP_5K, false, SIGNED_DATA[1])
         const action = launchpad
           .connect(user)
@@ -2011,11 +2132,17 @@ describe('Launchpad', function () {
       })
 
       it('Should not revert if KOL tries to pledge', async () => {
-        const { launchpad, user, fomoUsdcLp, SIGNED_DATA } = await loadFixture(deployContractFixtureWithLaunchAfter1Days)
+        const { launchpad, user, fomoUsdcLp, SIGNED_DATA } = await loadFixture(
+          deployContractFixtureWithLaunchAfter1Days
+        )
         await launchpad.addKOL(user.address)
-        await fomoUsdcLp.connect(user).approve(launchpad.address, constants.MaxUint256)
-        const action = launchpad.connect(user).pledge(0, LP_500, false, SIGNED_DATA[1])
-        await expect(action).not.to.be.reverted;
+        await fomoUsdcLp
+          .connect(user)
+          .approve(launchpad.address, constants.MaxUint256)
+        const action = launchpad
+          .connect(user)
+          .pledge(0, LP_500, false, SIGNED_DATA[1])
+        await expect(action).not.to.be.reverted
       })
 
       it('Should transfer max pledge tokens', async () => {
@@ -2024,9 +2151,13 @@ describe('Launchpad', function () {
         )
         const balanceBefore = await fomoUsdcLp.balanceOf(launchpad.address)
         await launchpad.addKOL(user.address)
-        await fomoUsdcLp.connect(user).approve(launchpad.address, constants.MaxUint256)
-        const action = launchpad.connect(user).pledge(0, LP_5K, false, SIGNED_DATA[1])
-        await expect(action).not.to.be.reverted;
+        await fomoUsdcLp
+          .connect(user)
+          .approve(launchpad.address, constants.MaxUint256)
+        const action = launchpad
+          .connect(user)
+          .pledge(0, LP_5K, false, SIGNED_DATA[1])
+        await expect(action).not.to.be.reverted
 
         expect(await fomoUsdcLp.balanceOf(launchpad.address)).to.be.eq(
           balanceBefore.add(LP_5K)
@@ -2036,10 +2167,16 @@ describe('Launchpad', function () {
 
     describe('In User Phase', async () => {
       it('Should not revert if KOL tries to pledge', async () => {
-        const { launchpad, fomoUsdcLp, user, SIGNED_DATA } = await loadFixture(deployContractFixtureWithLaunchAfter8Days)
+        const { launchpad, fomoUsdcLp, user, SIGNED_DATA } = await loadFixture(
+          deployContractFixtureWithLaunchAfter8Days
+        )
         await launchpad.addKOL(user.address)
-        await fomoUsdcLp.connect(user).approve(launchpad.address, constants.MaxUint256)
-        const action = launchpad.connect(user).pledge(0, LP_500, false, SIGNED_DATA[1])
+        await fomoUsdcLp
+          .connect(user)
+          .approve(launchpad.address, constants.MaxUint256)
+        const action = launchpad
+          .connect(user)
+          .pledge(0, LP_500, false, SIGNED_DATA[1])
         await expect(action).not.to.be.reverted
       })
 
@@ -2287,9 +2424,20 @@ describe('Launchpad', function () {
     })
 
     it('Should revert if user is KOL', async () => {
-      const { launchpad, user, SIGNED_DATA } = await loadFixture(deployContractFixtureWithLaunchAfter1Days)
+      const { launchpad, user, SIGNED_DATA } = await loadFixture(
+        deployContractFixtureWithLaunchAfter1Days
+      )
       await launchpad.addKOL(user.address)
-      const action = launchpad.connect(user).pledgeWithNFT(0, LP_500, false, 1, constants.AddressZero, SIGNED_DATA[1])
+      const action = launchpad
+        .connect(user)
+        .pledgeWithNFT(
+          0,
+          LP_500,
+          false,
+          1,
+          constants.AddressZero,
+          SIGNED_DATA[1]
+        )
       await expect(action).to.be.revertedWith(ERROR.UserIsKOL)
     })
 
@@ -2400,8 +2548,12 @@ describe('Launchpad', function () {
         })
         await fomoUsdcLp.connect(owner).transfer(pledgers[i].address, LP_5K)
         await launchpad.connect(owner).addKOL(pledgers[i].address)
-        await fomoUsdcLp.connect(pledgers[i]).approve(launchpad.address, constants.MaxUint256)
-        await launchpad.connect(pledgers[i]).pledge(0, LP_5K, false, SIGNED_DATA[i])
+        await fomoUsdcLp
+          .connect(pledgers[i])
+          .approve(launchpad.address, constants.MaxUint256)
+        await launchpad
+          .connect(pledgers[i])
+          .pledge(0, LP_5K, false, SIGNED_DATA[i])
       }
       // Inflate FOMO token price
       const options = {
@@ -2415,7 +2567,9 @@ describe('Launchpad', function () {
       // Try to pledge when raised value is $251,125 (above hard cap)
       // const RAISED_USDC = BigNumber.from("251125000000").div(2)
       // const RAISED_FOMO = BigNumber.from("119520940556626094592287")
-      await fomoUsdcLp.connect(user).approve(launchpad.address, constants.MaxUint256)
+      await fomoUsdcLp
+        .connect(user)
+        .approve(launchpad.address, constants.MaxUint256)
       const userBalanceBefore = await fomoUsdcLp.balanceOf(user.address)
       // const ownerBalanceBefore = await usdc.balanceOf(owner.address)
       var launch = await getLaunchConfig(launchpad, 0)
@@ -2478,13 +2632,19 @@ describe('Launchpad', function () {
         })
         await fomoUsdcLp.connect(owner).transfer(pledgers[i].address, LP_5K)
         await launchpad.connect(owner).addKOL(pledgers[i].address)
-        await fomoUsdcLp.connect(pledgers[i]).approve(launchpad.address, constants.MaxUint256)
-        await launchpad.connect(pledgers[i]).pledge(0, LP_5K, false, SIGNED_DATA[i])
+        await fomoUsdcLp
+          .connect(pledgers[i])
+          .approve(launchpad.address, constants.MaxUint256)
+        await launchpad
+          .connect(pledgers[i])
+          .pledge(0, LP_5K, false, SIGNED_DATA[i])
       }
       // Try to pledge when raised value is $250,000 (above hard cap)
       // const RAISED_USDC = BigNumber.from("250000000000").div(2)
       // const RAISED_FOMO = BigNumber.from("125000000000000000000000")
-      await fomoUsdcLp.connect(user).approve(launchpad.address, constants.MaxUint256)
+      await fomoUsdcLp
+        .connect(user)
+        .approve(launchpad.address, constants.MaxUint256)
       const userBalanceBefore = await fomoUsdcLp.balanceOf(user.address)
       // const ownerBalanceBefore = await usdc.balanceOf(owner.address)
       var launch = await getLaunchConfig(launchpad, 0)
@@ -2511,7 +2671,7 @@ describe('Launchpad', function () {
       )
       const userPledge = await launchpad.launchToUserPledge(0, user.address)
       expect(userPledge.lp).to.be.eq(LP_5K)
-      expect(userPledge.usdc).to.be.eq(parseUnits("5000", 6))
+      expect(userPledge.usdc).to.be.eq(parseUnits('5000', 6))
       // const alloc = await launchpad.tokenAddresses(0)
       // expect(alloc.usdc).to.be.eq(RAISED_USDC.mul(75).div(100))
       // expect(alloc.fomo).to.be.eq(RAISED_FOMO.mul(75).div(100))
@@ -2546,8 +2706,12 @@ describe('Launchpad', function () {
         })
         await fomoUsdcLp.connect(owner).transfer(pledgers[i].address, LP_5K)
         await launchpad.connect(owner).addKOL(pledgers[i].address)
-        await fomoUsdcLp.connect(pledgers[i]).approve(launchpad.address, constants.MaxUint256)
-        await launchpad.connect(pledgers[i]).pledge(0, LP_5K, false, SIGNED_DATA[i])
+        await fomoUsdcLp
+          .connect(pledgers[i])
+          .approve(launchpad.address, constants.MaxUint256)
+        await launchpad
+          .connect(pledgers[i])
+          .pledge(0, LP_5K, false, SIGNED_DATA[i])
       }
       // Try to pledge when raised value is $100,000 (soft cap & after deadline)
       // const RAISED_USDC = BigNumber.from("100000000000").div(2)
@@ -2600,7 +2764,11 @@ describe('Launchpad', function () {
         user3.address
       )
       await fomoUsdcLp.approve(launchpad.address, constants.MaxUint256)
-      await launchpad.createLaunch(config, false, await getUserVerificationData(owner.address, owner))
+      await launchpad.createLaunch(
+        config,
+        false,
+        await getUserVerificationData(owner.address, owner)
+      )
       expect(await launchpad.activeLaunches(0)).to.be.eq(0)
       expect(await launchpad.activeLaunches(1)).to.be.eq(1)
       const launch = await getLaunchConfig(launchpad, 0)
@@ -2613,8 +2781,12 @@ describe('Launchpad', function () {
         })
         await fomoUsdcLp.connect(owner).transfer(pledgers[i].address, LP_5K)
         await launchpad.connect(owner).addKOL(pledgers[i].address)
-        await fomoUsdcLp.connect(pledgers[i]).approve(launchpad.address, constants.MaxUint256)
-        await launchpad.connect(pledgers[i]).pledge(0, LP_5K, false, SIGNED_DATA[i])
+        await fomoUsdcLp
+          .connect(pledgers[i])
+          .approve(launchpad.address, constants.MaxUint256)
+        await launchpad
+          .connect(pledgers[i])
+          .pledge(0, LP_5K, false, SIGNED_DATA[i])
       }
       const balanceBefore = await fomoUsdcLp.balanceOf(launchpad.address)
       const blockTimestamp = launch.startTime
@@ -2632,7 +2804,9 @@ describe('Launchpad', function () {
           await getUserVerificationData(user2.address, owner, blockTimestamp)
         )
       expect((await getLaunchConfig(launchpad, 0)).status).to.be.eq(3)
-      expect(await fomoUsdcLp.balanceOf(launchpad.address)).to.be.eq(balanceBefore)
+      expect(await fomoUsdcLp.balanceOf(launchpad.address)).to.be.eq(
+        balanceBefore
+      )
       expect(await launchpad.activeLaunches(0)).to.be.eq(1)
     })
 
@@ -3077,7 +3251,7 @@ describe('Launchpad', function () {
     })
   })
 
-  describe.only('Launch', async () => {
+  describe('Launch', async () => {
     it('Estimage gas', async () => {
       const { launchpad, user } = await loadFixture(
         deployContractFixtureWithHardCapReached
@@ -3123,240 +3297,80 @@ describe('Launchpad', function () {
     })
 
     it('Should break LP correctly after soft cap reached', async () => {
-      const { launchpad, fomoUsdcLp, user, team, owner, usdc, fomo, SIGNED_DATA } = await loadFixture(deployContractFixtureWithLaunchAfter1Days)
+      const {
+        launchpad,
+        fomoUsdcLp,
+        user,
+        team,
+        owner,
+        usdc,
+        fomo,
+        SIGNED_DATA,
+      } = await loadFixture(deployContractFixtureWithLaunchAfter1Days)
       const pledgers = await getSigners(24)
       // Pledge $95k (+ $5k deposit) = $100k in total
       for (let i = 5; i < 24; i++) {
         await owner.sendTransaction({
           to: pledgers[i].address,
-          value: parseEther("1.0")
-        });
+          value: parseEther('1.0'),
+        })
         await fomoUsdcLp.connect(owner).transfer(pledgers[i].address, LP_5K)
         await launchpad.connect(owner).addKOL(pledgers[i].address)
-        await fomoUsdcLp.connect(pledgers[i]).approve(launchpad.address, constants.MaxUint256)
-        await launchpad.connect(pledgers[i]).pledge(0, LP_5K, false, SIGNED_DATA[i])
+        await fomoUsdcLp
+          .connect(pledgers[i])
+          .approve(launchpad.address, constants.MaxUint256)
+        await launchpad
+          .connect(pledgers[i])
+          .pledge(0, LP_5K, false, SIGNED_DATA[i])
       }
       const launchBefore = await getLaunchConfig(launchpad, 0)
-      const blockTimestamp = launchBefore.startTime.add(BigNumber.from('86400').mul(15)).toNumber()
-      await ethers.provider.send('evm_setNextBlockTimestamp', [
-        blockTimestamp,
-      ])
+      const blockTimestamp = launchBefore.startTime
+        .add(BigNumber.from('86400').mul(15))
+        .toNumber()
+      await ethers.provider.send('evm_setNextBlockTimestamp', [blockTimestamp])
       // Try to pledge when raised value is $100,000 (soft cap & after deadline)
-      const RAISED_USDC = BigNumber.from("100000000000").div(2)
-      const RAISED_FOMO = BigNumber.from("100000000000000000000000").div(2)
+      const RAISED_USDC = BigNumber.from('100000000000').div(2)
+      const RAISED_FOMO = BigNumber.from('100000000000000000000000').div(2)
       const ownerBalanceBefore = await usdc.balanceOf(owner.address)
       await launchpad.connect(user).launch(0)
       const launch = await getLaunchConfig(launchpad, 0)
       expect(launch.status).to.be.eq(4)
-      expect(await fomoUsdcLp.balanceOf(team.address)).to.be.eq(launch.raisedLP.mul(20).div(100))
+      expect(await fomoUsdcLp.balanceOf(team.address)).to.be.eq(
+        launch.raisedLP.mul(20).div(100)
+      )
       expect(await usdc.balanceOf(launchpad.address)).to.be.eq(0)
-      expect(await usdc.balanceOf(owner.address)).to.be.eq(RAISED_USDC.mul(5).div(100).add(ownerBalanceBefore))
+      expect(await usdc.balanceOf(owner.address)).to.be.eq(
+        RAISED_USDC.mul(5).div(100).add(ownerBalanceBefore)
+      )
       expect(await fomo.balanceOf(launchpad.address)).to.be.eq(0)
-      expect(await fomo.balanceOf(DEAD_ADDRESS)).to.be.eq(RAISED_FOMO.mul(5).div(100))
+      expect(await fomo.balanceOf(DEAD_ADDRESS)).to.be.eq(
+        RAISED_FOMO.mul(5).div(100)
+      )
       const alloc = await launchpad.tokenAddresses(0)
       expect(alloc.usdc).to.be.eq(RAISED_USDC.mul(75).div(100))
       expect(alloc.fomo).to.be.eq(RAISED_FOMO.mul(75).div(100))
     })
 
     it('Should break LP correctly after hard cap reached', async () => {
-      const { launchpad, team, user, fomoUsdcLp, fomo, usdc, owner } = await loadFixture(deployContractFixtureWithHardCapReached)
+      const { launchpad, team, user, fomoUsdcLp, fomo, usdc, owner } =
+        await loadFixture(deployContractFixtureWithHardCapReached)
       const ownerBalanceBefore = await usdc.balanceOf(owner.address)
       await launchpad.connect(user).launch(0)
-      const RAISED_USDC = BigNumber.from("250000000000").div(2)
-      const RAISED_FOMO = BigNumber.from("125000000000000000000000")
+      const RAISED_USDC = BigNumber.from('250000000000').div(2)
+      const RAISED_FOMO = BigNumber.from('125000000000000000000000')
       const launch = await getLaunchConfig(launchpad, 0)
       expect(launch.status).to.be.eq(4)
-      expect(await fomoUsdcLp.balanceOf(team.address)).to.be.eq(launch.raisedLP.mul(20).div(100))
+      expect(await fomoUsdcLp.balanceOf(team.address)).to.be.eq(
+        launch.raisedLP.mul(20).div(100)
+      )
       expect(await usdc.balanceOf(launchpad.address)).to.be.eq(0)
-      expect(await usdc.balanceOf(owner.address)).to.be.eq(RAISED_USDC.mul(5).div(100).add(ownerBalanceBefore))
+      expect(await usdc.balanceOf(owner.address)).to.be.eq(
+        RAISED_USDC.mul(5).div(100).add(ownerBalanceBefore)
+      )
       expect(await fomo.balanceOf(launchpad.address)).to.be.eq(0)
-      expect(await fomo.balanceOf(DEAD_ADDRESS)).to.be.eq(RAISED_FOMO.mul(5).div(100))
-      const alloc = await launchpad.tokenAddresses(0)
-      expect(alloc.usdc).to.be.eq(RAISED_USDC.mul(75).div(100))
-      expect(alloc.fomo).to.be.eq(RAISED_FOMO.mul(75).div(100))
-    })
-
-    it('Should create meme token with correct total supply', async () => {
-      const { launchpad, user } = await loadFixture(deployContractFixtureWithHardCapReached)
-      await launchpad.connect(user).launch(0)
-      const alloc = await launchpad.tokenAddresses(0)
-      const meme = await env.ethers.getContractAt("ERC20", alloc.token) as ERC20;
-      expect(await meme.totalSupply()).to.be.eq(parseEther('1000000000'))
-    })
-
-    it('Should send proper amount of tokens to Balancer Vault', async () => {
-      const { launchpad, user, fomo, usdc, balancerVaultAddress, owner } = await loadFixture(deployContractFixtureWithHardCapReached)
-      const usdcVaultBefore = await usdc.balanceOf(balancerVaultAddress)
-      const fomoVaultBefore = await fomo.balanceOf(balancerVaultAddress)
-      await launchpad.connect(user).launch(0)
-      const alloc = await launchpad.tokenAddresses(0)
-      const meme = await env.ethers.getContractAt("ERC20", alloc.token) as ERC20;
-      expect(await meme.balanceOf(balancerVaultAddress)).to.be.eq((await meme.totalSupply()).mul(3525).div(10000))
-      expect(await usdc.balanceOf(balancerVaultAddress)).to.be.eq(usdcVaultBefore.add(alloc.usdc))
-      expect(await fomo.balanceOf(balancerVaultAddress)).to.be.eq(fomoVaultBefore.add(alloc.fomo))
-    })
-
-    it('Should send both LPs to DEAD address', async () => {
-      const { launchpad, user } = await loadFixture(deployContractFixtureWithHardCapReached)
-      await launchpad.connect(user).launch(0)
-      const alloc = await launchpad.tokenAddresses(0)
-      const memeUsdcLP = await env.ethers.getContractAt("ERC20", alloc.usdcLP) as ERC20;
-      const memeFomoLP = await env.ethers.getContractAt("ERC20", alloc.fomoLP) as ERC20;
-      expect(await memeFomoLP.balanceOf(DEAD_ADDRESS)).to.be.eq((await memeFomoLP.totalSupply()).sub(1e6))
-      expect(await memeUsdcLP.balanceOf(DEAD_ADDRESS)).to.be.eq((await memeUsdcLP.totalSupply()).sub(1e6))
-    })
-
-    it('Should create 3 incentives controllers', async () => {
-      const { launchpad, user } = await loadFixture(deployContractFixtureWithHardCapReached)
-      await launchpad.connect(user).launch(0)
-      const alloc = await launchpad.tokenAddresses(0)
-      const usdcLPIC = await env.ethers.getContractAt("TokenIncentivesController", alloc.usdcLPIC) as TokenIncentivesController;
-      const fomoLPIC = await env.ethers.getContractAt("TokenIncentivesController", alloc.fomoLPIC) as TokenIncentivesController;
-      const memeIC = await env.ethers.getContractAt("TokenIncentivesController", alloc.tokenIC) as TokenIncentivesController;
-
-      expect(await usdcLPIC.stakingToken()).to.be.eq(alloc.usdcLP)
-      expect(await fomoLPIC.stakingToken()).to.be.eq(alloc.fomoLP)
-      expect(await memeIC.stakingToken()).to.be.eq(alloc.tokenICProxy)
-    })
-
-    it('Should create vesting contract and set owner properly', async () => {
-      const { launchpad, user, owner } = await loadFixture(deployContractFixtureWithHardCapReached)
-      await launchpad.connect(user).launch(0)
-      const blockTimestamp = (await ethers.provider.getBlock('latest')).timestamp
-      const alloc = await launchpad.tokenAddresses(0)
-      const vesting = await env.ethers.getContractAt("MEMEVesting", alloc.vesting) as MEMEVesting;
-      expect(await vesting.owner()).to.be.eq(owner.address)
-      expect(await vesting.tgeTimestamp()).to.be.eq(blockTimestamp)
-    })
-
-    it('Should notify lp incentives controllers for 1.75% of meme supply each', async () => {
-      const { launchpad, user } = await loadFixture(deployContractFixtureWithHardCapReached)
-      await launchpad.connect(user).launch(0)
-      const alloc = await launchpad.tokenAddresses(0)
-      const meme = await env.ethers.getContractAt("ERC20", alloc.token) as ERC20;
-      const usdcLPIC = await env.ethers.getContractAt("TokenIncentivesController", alloc.usdcLPIC) as TokenIncentivesController;
-      const fomoLPIC = await env.ethers.getContractAt("TokenIncentivesController", alloc.fomoLPIC) as TokenIncentivesController;
-
-      expect(await meme.balanceOf(usdcLPIC.address)).to.be.eq((await meme.totalSupply()).mul(175).div(10_000))
-      expect(await meme.balanceOf(fomoLPIC.address)).to.be.eq((await meme.totalSupply()).mul(175).div(10_000))
-    })
-
-    it('Should notify steak, meme and fomo controller for 0.5% of meme supply each', async () => {
-      const { launchpad, user, steakController, fomoController } = await loadFixture(deployContractFixtureWithHardCapReached)
-      await launchpad.connect(user).launch(0)
-      const alloc = await launchpad.tokenAddresses(0)
-      const meme = await env.ethers.getContractAt("ERC20", alloc.token) as ERC20;
-      const memeIC = await env.ethers.getContractAt("TokenIncentivesController", alloc.tokenIC) as TokenIncentivesController;
-
-      expect(await meme.balanceOf(memeIC.address)).to.be.eq((await meme.totalSupply()).mul(50).div(10_000))
-      expect(await meme.balanceOf(fomoController.address)).to.be.eq((await meme.totalSupply()).mul(50).div(10_000))
-      expect(await meme.balanceOf(steakController.address)).to.be.eq((await meme.totalSupply()).mul(50).div(10_000))
-    })
-
-    it('Should start emissions on incentivesControllers', async () => {
-      const { launchpad, user } = await loadFixture(deployContractFixtureWithHardCapReached)
-      await launchpad.connect(user).launch(0)
-      const blockTimestamp = (await ethers.provider.getBlock('latest')).timestamp
-      const alloc = await launchpad.tokenAddresses(0)
-      const meme = await env.ethers.getContractAt("ERC20", alloc.token) as ERC20;
-      const usdcLPIC = await env.ethers.getContractAt("TokenEmissionsController", alloc.usdcLPIC) as TokenEmissionsController;
-      const fomoLPIC = await env.ethers.getContractAt("TokenEmissionsController", alloc.fomoLPIC) as TokenEmissionsController;
-      const memeIC = await env.ethers.getContractAt("TokenEmissionsController", alloc.tokenIC) as TokenEmissionsController;
-
-      expect(await usdcLPIC.emissionsStart()).to.be.eq(blockTimestamp)
-      expect(await fomoLPIC.emissionsStart()).to.be.eq(blockTimestamp)
-      expect(await memeIC.emissionsStart()).to.be.eq(blockTimestamp)
-      const usdcLPICEmission = await usdcLPIC.emissions(await usdcLPIC.currentEmissionsIndex())
-      expect(usdcLPICEmission.amount).to.be.eq((await meme.totalSupply()).mul(5).mul(35).div(2).div(10000))
-      expect(usdcLPICEmission.duration).to.be.eq(BigNumber.from('86400').mul(45))
-      const fomoLPICEmission = await fomoLPIC.emissions(await fomoLPIC.currentEmissionsIndex())
-      expect(fomoLPICEmission.amount).to.be.eq((await meme.totalSupply()).mul(5).mul(35).div(2).div(10000))
-      expect(fomoLPICEmission.duration).to.be.eq(BigNumber.from('86400').mul(45))
-      const memeICEmission = await memeIC.emissions(await memeIC.currentEmissionsIndex())
-      expect(memeICEmission.amount).to.be.eq((await meme.totalSupply()).mul(5).mul(10).div(2).div(10000))
-      expect(memeICEmission.duration).to.be.eq(BigNumber.from('86400').mul(45))
-    })
-
-    it('Should send 2.75% to the protocol owner', async () => {
-      const { launchpad, user, owner } = await loadFixture(deployContractFixtureWithHardCapReached)
-      await launchpad.connect(user).launch(0)
-      const alloc = await launchpad.tokenAddresses(0)
-      const meme = await env.ethers.getContractAt("ERC20", alloc.token) as ERC20;
-      expect(await meme.balanceOf(owner.address)).to.be.eq((await meme.totalSupply()).mul(275).div(10000))
-    })
-
-    it('Should not send MEME to X address if not set', async () => {
-      const { launchpad, user, user3 } = await loadFixture(deployContractFixtureWithHardCapReached)
-      await launchpad.connect(user).launch(0)
-      const alloc = await launchpad.tokenAddresses(0)
-      const meme = await env.ethers.getContractAt("ERC20", alloc.token) as ERC20;
-      expect(await meme.balanceOf(user3.address)).to.be.eq(0)
-    })
-
-    it('Should Send MEME to the X address if set', async () => {
-      const { launchpad, owner, fomoUsdcLp, user, team, user3, SIGNED_DATA } = await loadFixture(deployContractFixture)
-      await fomoUsdcLp.connect(owner).approve(launchpad.address, constants.MaxUint256)
-      var config = {
-        name: 'MEME',
-        symbol: 'MEME',
-        totalSupply: 1e9,
-        hardCap: 250000,
-        team: team.address,
-        x: user3.address,
-        allocations: [500, 500, 500, 3525, 4600, 100],
-        rewardsAllocations: [3500, 3500, 1000, 1000, 1000] as [number, number, number, number, number],
-        rounds: [1 * ONE_DAY, 7 * ONE_DAY, 7 * ONE_DAY] as [number, number, number],
-        dexIndex: 1,
-        steakTeamFee: 2000
-      }
-      await launchpad.connect(owner).createLaunch(config, false, await getUserVerificationData(owner.address, owner))
-      const pledgers = await getSigners(54)
-      // Pledge $245k (+ $5k deposit) = $250k in total
-      for (let i = 5; i < 54; i++) {
-        await owner.sendTransaction({
-          to: pledgers[i].address,
-          value: parseEther("1.0")
-        });
-        await fomoUsdcLp.connect(owner).transfer(pledgers[i].address, LP_5K)
-        await launchpad.connect(owner).addKOL(pledgers[i].address)
-        await fomoUsdcLp.connect(pledgers[i]).approve(launchpad.address, constants.MaxUint256)
-        await launchpad.connect(pledgers[i]).pledge(0, LP_5K, false, SIGNED_DATA[i])
-      }
-      const launchBefore = await getLaunchConfig(launchpad, 0)
-      const blockTimestamp = launchBefore.startTime.add(BigNumber.from('86400').mul(15)).toNumber()
-      await ethers.provider.send('evm_setNextBlockTimestamp', [
-        blockTimestamp,
-      ])
-      // Try to pledge when raised value is $100,000 (soft cap & after deadline)
-      const RAISED_USDC = BigNumber.from("100000000000").div(2)
-      const RAISED_FOMO = BigNumber.from("100000000000000000000000").div(2)
-      const ownerBalanceBefore = await usdc.balanceOf(owner.address)
-      await launchpad.connect(user).launch(0)
-      const launch = await getLaunchConfig(launchpad, 0)
-      expect(launch.status).to.be.eq(4)
-      expect(await fomoUsdcLp.balanceOf(team.address)).to.be.eq(launch.raisedLP.mul(20).div(100))
-      expect(await usdc.balanceOf(launchpad.address)).to.be.eq(0)
-      expect(await usdc.balanceOf(owner.address)).to.be.eq(RAISED_USDC.mul(5).div(100).add(ownerBalanceBefore))
-      expect(await fomo.balanceOf(launchpad.address)).to.be.eq(0)
-      expect(await fomo.balanceOf(DEAD_ADDRESS)).to.be.eq(RAISED_FOMO.mul(5).div(100))
-      const alloc = await launchpad.tokenAddresses(0)
-      expect(alloc.usdc).to.be.eq(RAISED_USDC.mul(75).div(100))
-      expect(alloc.fomo).to.be.eq(RAISED_FOMO.mul(75).div(100))
-    })
-
-    it('Should break LP correctly after hard cap reached', async () => {
-      const { launchpad, team, user, fomoUsdcLp, fomo, usdc, owner } = await loadFixture(deployContractFixtureWithHardCapReached)
-      const ownerBalanceBefore = await usdc.balanceOf(owner.address)
-      await launchpad.connect(user).launch(0)
-      const RAISED_USDC = BigNumber.from("250000000000").div(2)
-      const RAISED_FOMO = BigNumber.from("125000000000000000000000")
-      const launch = await getLaunchConfig(launchpad, 0)
-      expect(launch.status).to.be.eq(4)
-      expect(await fomoUsdcLp.balanceOf(team.address)).to.be.eq(launch.raisedLP.mul(20).div(100))
-      expect(await usdc.balanceOf(launchpad.address)).to.be.eq(0)
-      expect(await usdc.balanceOf(owner.address)).to.be.eq(RAISED_USDC.mul(5).div(100).add(ownerBalanceBefore))
-      expect(await fomo.balanceOf(launchpad.address)).to.be.eq(0)
-      expect(await fomo.balanceOf(DEAD_ADDRESS)).to.be.eq(RAISED_FOMO.mul(5).div(100))
+      expect(await fomo.balanceOf(DEAD_ADDRESS)).to.be.eq(
+        RAISED_FOMO.mul(5).div(100)
+      )
       const alloc = await launchpad.tokenAddresses(0)
       expect(alloc.usdc).to.be.eq(RAISED_USDC.mul(75).div(100))
       expect(alloc.fomo).to.be.eq(RAISED_FOMO.mul(75).div(100))
@@ -3638,9 +3652,7 @@ describe('Launchpad', function () {
           value: parseEther('1.0'),
         })
         await fomoUsdcLp.connect(owner).transfer(pledgers[i].address, LP_5K)
-        await launchpad
-          .connect(owner)
-          .setKolAddresses([pledgers[i].address], [true])
+        await launchpad.connect(owner).addKOL(pledgers[i].address)
         await fomoUsdcLp
           .connect(pledgers[i])
           .approve(launchpad.address, constants.MaxUint256)
@@ -3733,21 +3745,46 @@ describe('Launchpad', function () {
     })
 
     it('Should vest KOL bonuses in vesting contract for KOL launch creator', async () => {
-      const { launchpad, user } = await loadFixture(deployContractFixtureWithHardCapReachedFromKOLCreator)
+      const { launchpad, user } = await loadFixture(
+        deployContractFixtureWithHardCapReachedFromKOLCreator
+      )
       await launchpad.connect(user).launch(0)
       const alloc = await launchpad.tokenAddresses(0)
-      const vesting = await env.ethers.getContractAt("MEMEVesting", alloc.vesting) as MEMEVesting;
-      const meme = await env.ethers.getContractAt("ERC20", alloc.token) as ERC20;
+      const vesting = (await env.ethers.getContractAt(
+        'MEMEVesting',
+        alloc.vesting
+      )) as MEMEVesting
+      const meme = (await env.ethers.getContractAt(
+        'ERC20',
+        alloc.token
+      )) as ERC20
       const pledgers = await getSigners(54)
       const launch = await getLaunchConfig(launchpad, 0)
       for (let i = 5; i < 54; i++) {
-        const pledge = await launchpad.launchToUserPledge(0, pledgers[i].address)
-        const vestingPos = await vesting.getVestingPositions(pledgers[i].address)
-        expect(vestingPos[0].amount).to.be.eq((await meme.totalSupply()).mul(500).div(10000).mul(pledge.lp).div(launch.raisedLPKOL))
+        const pledge = await launchpad.launchToUserPledge(
+          0,
+          pledgers[i].address
+        )
+        const vestingPos = await vesting.getVestingPositions(
+          pledgers[i].address
+        )
+        expect(vestingPos[0].amount).to.be.eq(
+          (await meme.totalSupply())
+            .mul(500)
+            .div(10000)
+            .mul(pledge.lp)
+            .div(launch.raisedLPKOL)
+        )
       }
       const pledge = await launchpad.launchToUserPledge(0, user.address)
       const vestingPos = await vesting.getVestingPositions(user.address)
-      expect(vestingPos[0].amount).to.be.eq((await meme.totalSupply()).mul(500).div(10000).mul(pledge.lp).div(launch.raisedLPKOL))
+      expect(vestingPos[0].amount).to.be.eq(
+        (await meme.totalSupply())
+          .mul(500)
+          .div(10000)
+          .mul(pledge.lp)
+          .div(launch.raisedLPKOL)
+      )
     })
 
     it('Should send MEME to vesting contract correctly', async () => {
@@ -3908,8 +3945,12 @@ describe('Launchpad', function () {
           })
           await fomoUsdcLp.connect(owner).transfer(pledgers[i].address, LP_5K)
           await launchpad.connect(owner).addKOL(pledgers[i].address)
-          await fomoUsdcLp.connect(pledgers[i]).approve(launchpad.address, constants.MaxUint256)
-          await launchpad.connect(pledgers[i]).pledge(0, LP_5K, false, SIGNED_DATA[i])
+          await fomoUsdcLp
+            .connect(pledgers[i])
+            .approve(launchpad.address, constants.MaxUint256)
+          await launchpad
+            .connect(pledgers[i])
+            .pledge(0, LP_5K, false, SIGNED_DATA[i])
         }
 
         // Check allocations
@@ -4037,8 +4078,12 @@ describe('Launchpad', function () {
           })
           await fomoUsdcLp.connect(owner).transfer(pledgers[i].address, LP_5K)
           await launchpad.connect(owner).addKOL(pledgers[i].address)
-          await fomoUsdcLp.connect(pledgers[i]).approve(launchpad.address, constants.MaxUint256)
-          await launchpad.connect(pledgers[i]).pledge(0, LP_5K, false, SIGNED_DATA[i])
+          await fomoUsdcLp
+            .connect(pledgers[i])
+            .approve(launchpad.address, constants.MaxUint256)
+          await launchpad
+            .connect(pledgers[i])
+            .pledge(0, LP_5K, false, SIGNED_DATA[i])
         }
 
         // Check allocations
@@ -4164,8 +4209,12 @@ describe('Launchpad', function () {
           })
           await fomoUsdcLp.connect(owner).transfer(pledgers[i].address, LP_5K)
           await launchpad.connect(owner).addKOL(pledgers[i].address)
-          await fomoUsdcLp.connect(pledgers[i]).approve(launchpad.address, constants.MaxUint256)
-          await launchpad.connect(pledgers[i]).pledge(0, LP_5K, false, SIGNED_DATA[i])
+          await fomoUsdcLp
+            .connect(pledgers[i])
+            .approve(launchpad.address, constants.MaxUint256)
+          await launchpad
+            .connect(pledgers[i])
+            .pledge(0, LP_5K, false, SIGNED_DATA[i])
         }
 
         // Check allocations
@@ -4269,8 +4318,12 @@ describe('Launchpad', function () {
           })
           await fomoUsdcLp.connect(owner).transfer(pledgers[i].address, LP_5K)
           await launchpad.connect(owner).addKOL(pledgers[i].address)
-          await fomoUsdcLp.connect(pledgers[i]).approve(launchpad.address, constants.MaxUint256)
-          await launchpad.connect(pledgers[i]).pledge(0, LP_5K, false, SIGNED_DATA[i])
+          await fomoUsdcLp
+            .connect(pledgers[i])
+            .approve(launchpad.address, constants.MaxUint256)
+          await launchpad
+            .connect(pledgers[i])
+            .pledge(0, LP_5K, false, SIGNED_DATA[i])
         }
 
         // Check allocations
@@ -4444,8 +4497,12 @@ describe('Launchpad', function () {
           })
           await fomoUsdcLp.connect(owner).transfer(pledgers[i].address, LP_5K)
           await launchpad.connect(owner).addKOL(pledgers[i].address)
-          await fomoUsdcLp.connect(pledgers[i]).approve(launchpad.address, constants.MaxUint256)
-          await launchpad.connect(pledgers[i]).pledge(0, LP_5K, false, SIGNED_DATA[i])
+          await fomoUsdcLp
+            .connect(pledgers[i])
+            .approve(launchpad.address, constants.MaxUint256)
+          await launchpad
+            .connect(pledgers[i])
+            .pledge(0, LP_5K, false, SIGNED_DATA[i])
         }
 
         // Check allocations
@@ -4573,8 +4630,12 @@ describe('Launchpad', function () {
           })
           await fomoUsdcLp.connect(owner).transfer(pledgers[i].address, LP_5K)
           await launchpad.connect(owner).addKOL(pledgers[i].address)
-          await fomoUsdcLp.connect(pledgers[i]).approve(launchpad.address, constants.MaxUint256)
-          await launchpad.connect(pledgers[i]).pledge(0, LP_5K, false, SIGNED_DATA[i])
+          await fomoUsdcLp
+            .connect(pledgers[i])
+            .approve(launchpad.address, constants.MaxUint256)
+          await launchpad
+            .connect(pledgers[i])
+            .pledge(0, LP_5K, false, SIGNED_DATA[i])
         }
 
         // Check allocations
@@ -4868,22 +4929,31 @@ describe('Launchpad', function () {
 
   describe('EmergencyFailLaunch', async () => {
     it('Should revert if launchpad is in LAUNCHED state', async () => {
-      const { launchpad, user, owner } = await loadFixture(deployContractFixtureWithHardCapReached)
+      const { launchpad, user, owner } = await loadFixture(
+        deployContractFixtureWithHardCapReached
+      )
       await launchpad.connect(user).launch(0)
       const action = launchpad.connect(owner).emergencyFailLaunch(0)
       await expect(action).to.be.revertedWith(ERROR.AlreadyLaunched)
     })
 
     it('Should revert if not an owner', async () => {
-      const { launchpad, user } = await loadFixture(deployContractFixtureWithHardCapReached)
+      const { launchpad, user } = await loadFixture(
+        deployContractFixtureWithHardCapReached
+      )
       await launchpad.connect(user).launch(0)
       const action = launchpad.connect(user).emergencyFailLaunch(0)
-      await expect(action).to.be.revertedWith("Ownable: caller is not the owner")
+      await expect(action).to.be.revertedWith(
+        'Ownable: caller is not the owner'
+      )
     })
 
     it('Should set launch status to FAILED from PENDING', async () => {
-      const { launchpad, owner, fomoUsdcLp, user, SIGNED_DATA } = await loadFixture(deployContractFixtureWithLaunchAfter8Days)
-      await fomoUsdcLp.connect(user).approve(launchpad.address, constants.MaxUint256)
+      const { launchpad, owner, fomoUsdcLp, user, SIGNED_DATA } =
+        await loadFixture(deployContractFixtureWithLaunchAfter8Days)
+      await fomoUsdcLp
+        .connect(user)
+        .approve(launchpad.address, constants.MaxUint256)
       await launchpad.connect(user).pledge(0, LP_5K, false, SIGNED_DATA[1])
       const launchBefore = await getLaunchConfig(launchpad, 0)
       expect(launchBefore.status).to.be.eq(0)
@@ -4893,26 +4963,48 @@ describe('Launchpad', function () {
     })
 
     it('Should set launch status to FAILED from SOFT_CAP_REACHED', async () => {
-      const { launchpad, fomoUsdcLp, user, team, owner, usdc, fomo, SIGNED_DATA } = await loadFixture(deployContractFixtureWithLaunch)
+      const {
+        launchpad,
+        fomoUsdcLp,
+        user,
+        team,
+        owner,
+        usdc,
+        fomo,
+        SIGNED_DATA,
+      } = await loadFixture(deployContractFixtureWithLaunch)
       const pledgers = await getSigners(24)
       // Pledge $95k (+ $5k deposit) = $100k in total
       for (let i = 5; i < 24; i++) {
         await owner.sendTransaction({
           to: pledgers[i].address,
-          value: parseEther("1.0")
-        });
+          value: parseEther('1.0'),
+        })
         await fomoUsdcLp.connect(owner).transfer(pledgers[i].address, LP_5K)
         await launchpad.connect(owner).addKOL(pledgers[i].address)
-        await fomoUsdcLp.connect(pledgers[i]).approve(launchpad.address, constants.MaxUint256)
-        await launchpad.connect(pledgers[i]).pledge(0, LP_5K, false, SIGNED_DATA[i])
+        await fomoUsdcLp
+          .connect(pledgers[i])
+          .approve(launchpad.address, constants.MaxUint256)
+        await launchpad
+          .connect(pledgers[i])
+          .pledge(0, LP_5K, false, SIGNED_DATA[i])
       }
-      await fomoUsdcLp.connect(user).approve(launchpad.address, constants.MaxUint256)
+      await fomoUsdcLp
+        .connect(user)
+        .approve(launchpad.address, constants.MaxUint256)
       const launchBefore = await getLaunchConfig(launchpad, 0)
-      const blockTimestamp = launchBefore.startTime.add(BigNumber.from('86400').mul(15)).toNumber()
-      await ethers.provider.send('evm_setNextBlockTimestamp', [
-        blockTimestamp,
-      ])
-      await launchpad.connect(user).pledge(0, LP_5K, false, await getUserVerificationData(user.address, owner, blockTimestamp))
+      const blockTimestamp = launchBefore.startTime
+        .add(BigNumber.from('86400').mul(15))
+        .toNumber()
+      await ethers.provider.send('evm_setNextBlockTimestamp', [blockTimestamp])
+      await launchpad
+        .connect(user)
+        .pledge(
+          0,
+          LP_5K,
+          false,
+          await getUserVerificationData(user.address, owner, blockTimestamp)
+        )
       const launchBefore2 = await getLaunchConfig(launchpad, 0)
       expect(launchBefore2.status).to.be.eq(1)
       await launchpad.connect(owner).emergencyFailLaunch(0)
@@ -4921,7 +5013,9 @@ describe('Launchpad', function () {
     })
 
     it('Should set launch status to FAILED from HARD_CAP_REACHED', async () => {
-      const { launchpad, owner } = await loadFixture(deployContractFixtureWithHardCapReached)
+      const { launchpad, owner } = await loadFixture(
+        deployContractFixtureWithHardCapReached
+      )
       const launchBefore = await getLaunchConfig(launchpad, 0)
       expect(launchBefore.status).to.be.eq(2)
       await launchpad.connect(owner).emergencyFailLaunch(0)
@@ -4930,7 +5024,9 @@ describe('Launchpad', function () {
     })
 
     it('Should get funds back after emergency fail', async () => {
-      const { launchpad, owner } = await loadFixture(deployContractFixtureWithHardCapReached)
+      const { launchpad, owner } = await loadFixture(
+        deployContractFixtureWithHardCapReached
+      )
       const launchBefore = await getLaunchConfig(launchpad, 0)
       expect(launchBefore.status).to.be.eq(2)
       await launchpad.connect(owner).emergencyFailLaunch(0)
@@ -4943,7 +5039,6 @@ describe('Launchpad', function () {
       await expect(a1).not.to.be.reverted
       await expect(a2).not.to.be.reverted
       await expect(a3).not.to.be.reverted
-
     })
   })
 
@@ -4952,18 +5047,24 @@ describe('Launchpad', function () {
       it('Should revert if not an owner', async () => {
         const { launchpad, user } = await loadFixture(deployContractFixture)
         const action = launchpad.connect(user).addKOL(user.address)
-        await expect(action).to.be.revertedWith("Ownable: caller is not the owner")
+        await expect(action).to.be.revertedWith(
+          'Ownable: caller is not the owner'
+        )
       })
 
       it('Should revert if user is KOL', async () => {
-        const { launchpad, owner, user } = await loadFixture(deployContractFixture)
+        const { launchpad, owner, user } = await loadFixture(
+          deployContractFixture
+        )
         await launchpad.connect(owner).addKOL(user.address)
         const action = launchpad.connect(owner).addKOL(user.address)
         await expect(action).to.be.revertedWith(ERROR.UserIsKOL)
       })
 
       it('Should set KOL addresses correctly', async () => {
-        const { launchpad, owner, user, user2, user3 } = await loadFixture(deployContractFixture)
+        const { launchpad, owner, user, user2, user3 } = await loadFixture(
+          deployContractFixture
+        )
         await launchpad.connect(owner).addKOL(user.address)
         await launchpad.connect(owner).addKOL(user3.address)
         await launchpad.connect(owner).addKOL(user2.address)
@@ -4976,17 +5077,22 @@ describe('Launchpad', function () {
       })
 
       it('Should launch correctly after addKOL', async () => {
-        const { launchpad, fomoUsdcLp, owner, user, team, SIGNED_DATA } = await loadFixture(deployContractFixtureWithLaunchAfter8Days)
+        const { launchpad, fomoUsdcLp, owner, user, team, SIGNED_DATA } =
+          await loadFixture(deployContractFixtureWithLaunchAfter8Days)
         const pledgers = await getSigners(250)
         // Pledge $245k (+ $5k deposit) = $250k in total
         for (let i = 5; i < 250; i++) {
           await owner.sendTransaction({
             to: pledgers[i].address,
-            value: parseEther("1.0")
-          });
+            value: parseEther('1.0'),
+          })
           await fomoUsdcLp.connect(owner).transfer(pledgers[i].address, LP_1K)
-          await fomoUsdcLp.connect(pledgers[i]).approve(launchpad.address, constants.MaxUint256)
-          await launchpad.connect(pledgers[i]).pledge(0, LP_1K, false, SIGNED_DATA[i])
+          await fomoUsdcLp
+            .connect(pledgers[i])
+            .approve(launchpad.address, constants.MaxUint256)
+          await launchpad
+            .connect(pledgers[i])
+            .pledge(0, LP_1K, false, SIGNED_DATA[i])
         }
         const launchBefore = await getLaunchConfig(launchpad, 0)
         expect(launchBefore.raisedLPKOL).to.be.eq(0)
@@ -5004,17 +5110,22 @@ describe('Launchpad', function () {
       })
 
       it('Should launch correctly after addKOL and remove KOL', async () => {
-        const { launchpad, fomoUsdcLp, owner, user, team, SIGNED_DATA } = await loadFixture(deployContractFixtureWithLaunchAfter8Days)
+        const { launchpad, fomoUsdcLp, owner, user, team, SIGNED_DATA } =
+          await loadFixture(deployContractFixtureWithLaunchAfter8Days)
         const pledgers = await getSigners(250)
         // Pledge $245k (+ $5k deposit) = $250k in total
         for (let i = 5; i < 250; i++) {
           await owner.sendTransaction({
             to: pledgers[i].address,
-            value: parseEther("1.0")
-          });
+            value: parseEther('1.0'),
+          })
           await fomoUsdcLp.connect(owner).transfer(pledgers[i].address, LP_1K)
-          await fomoUsdcLp.connect(pledgers[i]).approve(launchpad.address, constants.MaxUint256)
-          await launchpad.connect(pledgers[i]).pledge(0, LP_1K, false, SIGNED_DATA[i])
+          await fomoUsdcLp
+            .connect(pledgers[i])
+            .approve(launchpad.address, constants.MaxUint256)
+          await launchpad
+            .connect(pledgers[i])
+            .pledge(0, LP_1K, false, SIGNED_DATA[i])
         }
         const launchBefore = await getLaunchConfig(launchpad, 0)
         expect(launchBefore.raisedLPKOL).to.be.eq(0)
@@ -5037,20 +5148,28 @@ describe('Launchpad', function () {
 
     describe('RemoveKOL', async () => {
       it('Should revert if not an owner', async () => {
-        const { launchpad, user, owner } = await loadFixture(deployContractFixture)
+        const { launchpad, user, owner } = await loadFixture(
+          deployContractFixture
+        )
         await launchpad.connect(owner).addKOL(user.address)
         const action = launchpad.connect(user).removeKOL(user.address)
-        await expect(action).to.be.revertedWith("Ownable: caller is not the owner")
+        await expect(action).to.be.revertedWith(
+          'Ownable: caller is not the owner'
+        )
       })
 
       it('Should revert if user is not KOL', async () => {
-        const { launchpad, owner, user } = await loadFixture(deployContractFixture)
+        const { launchpad, owner, user } = await loadFixture(
+          deployContractFixture
+        )
         const action = launchpad.connect(owner).removeKOL(user.address)
         await expect(action).to.be.revertedWith(ERROR.UserIsNotKOL)
       })
 
       it('Should remove KOL addresses correctly', async () => {
-        const { launchpad, owner, user, user2, user3 } = await loadFixture(deployContractFixture)
+        const { launchpad, owner, user, user2, user3 } = await loadFixture(
+          deployContractFixture
+        )
         await launchpad.connect(owner).addKOL(user.address)
         await launchpad.connect(owner).addKOL(user2.address)
         await launchpad.connect(owner).addKOL(user3.address)
@@ -5061,11 +5180,13 @@ describe('Launchpad', function () {
         expect(await launchpad.kolAddresses(0)).to.be.eq(user3.address)
         expect(await launchpad.kolAddresses(1)).to.be.eq(user2.address)
         const action = launchpad.kolAddresses(2)
-        await expect(action).to.be.reverted;
+        await expect(action).to.be.reverted
       })
 
       it('Should launch correctly after remove KOL', async () => {
-        const { launchpad, owner, user } = await loadFixture(deployContractFixtureWithHardCapReached)
+        const { launchpad, owner, user } = await loadFixture(
+          deployContractFixtureWithHardCapReached
+        )
         const launchBefore = await getLaunchConfig(launchpad, 0)
         expect(launchBefore.raisedLPKOL).to.be.eq(LP_5K.mul(49))
         const pledgers = await getSigners(54)
@@ -5082,7 +5203,9 @@ describe('Launchpad', function () {
       })
 
       it('Should launch correctly after remove KOL and readd KOL', async () => {
-        const { launchpad, owner, user } = await loadFixture(deployContractFixtureWithHardCapReached)
+        const { launchpad, owner, user } = await loadFixture(
+          deployContractFixtureWithHardCapReached
+        )
         const launchBefore = await getLaunchConfig(launchpad, 0)
         expect(launchBefore.raisedLPKOL).to.be.eq(LP_5K.mul(49))
         const pledgers = await getSigners(54)
